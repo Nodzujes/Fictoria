@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+$mainBack: #222831;
+$blocks: #1C2329;
+$mainTxt: #E3E3E3;
+$nickName: white;
+$active: #5AB9EA;
+$orange: #FF8C42;
+$blackTxt: #1A1A1A;
+
+@mixin center-container{
+    max-width: 1920px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    // outline: 4px solid green !important;
+}
+
+body{
+    background-color: $mainBack;
+}
+
+header{
+    @include center-container;
+    background-color: $blocks;
+    height: 100px;
+}
+
+header .wrapper{
+    padding: 31px 200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mainHeader{
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.mainHeader__logo{
+    // padding-left: 200px;
+    display: flex;
+    gap: 0 5px;
+}
+
+.mainHeader__logo span{
+    font-family: "Oswald";
+    font-size: 30px;
+    font-weight: 600;
+    color: $nickName;
+}
+
+.mainHeader__nav{
+    display: flex;
+    gap: 0 25px         ;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    color: $nickName;
+    font-weight: 500;
+    list-style: none;
+}
+
+.mainHeader__buttons{
+    display: flex;
+    gap: 0 13px;
+}
+
+header a{
+    color: $nickName;
+    text-decoration: none;
+}
+
+// Кнопка авторизаци
+.header__login{
+    width: 87px;
+    border-radius: 5px;
+    background-color: $orange;
+    display: flex;
+    // display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+}
+
+// Иконка пользователя
+.header__user{
+    display: none;
+    border: none;
+    background-color: transparent;
+}
+
+.header__user img{
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 2px;
+    object-fit: cover;
+}
+
+.owner__main{
+    @include center-container;
+    box-sizing: border-box;
+}
+
+main .wrapper{
+    padding: 20px 200px;
+    box-sizing: border-box;
+}
+
+footer{
+    @include center-container;
+    background-color: $blocks;
+}
+
+footer .wrapper{
+    padding: 20px 200px;
+    display: flex;
+    gap: 0 184px;
+}
+
+footer .block{
+    display: flex;
+    flex-direction: column;
+    gap: 15px 0;
+}
+
+.footer__titel{
+    width: 242px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: $mainTxt;
+    padding-bottom: 9px;
+    border-bottom: 1px solid $mainTxt;
+}
+
+.footer__user ul{
+    display: flex;
+    flex-direction: column;
+    gap: 9px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: $nickName;
+    list-style: none;
+}
+
+.footer__nav ul{
+    width: 242px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px 41px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: $nickName;
+    list-style: none;
+}
+
+.footer__nav li{
+    width: 72px;
+}
+
+footer a{
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: $nickName;
+    text-decoration: none;
+}
+
+.footer__social--links{
+    display: flex;
+    flex-direction: column;
+    gap: 9px 0;
+}
+
+.footer__social--links a{
+    display: flex;
+    align-items: center;
+    gap: 0 14px;
+}

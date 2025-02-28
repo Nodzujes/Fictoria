@@ -1,0 +1,100 @@
+.content__header{
+    box-sizing: border-box;
+    width: 1135px;
+    height: 100px;
+    padding: 0 20px;
+    background-color: $blocks;
+    display: flex;
+    align-items: center;
+}
+
+.content__header h1{
+    font-family: 'Montserrat', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: $mainTxt;
+}
+
+.content__header a{
+    text-decoration: none;
+}
+
+.indent{
+    margin-bottom: 477px;
+}
+
+.user__account-block{
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0 20px;
+    width: 1135px;
+    height: 87px;
+    padding: 0 20px;
+    background-color: $blocks;
+}
+
+.user__account-block img{
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+.user__account-block-txt{
+    display: flex;
+    flex-direction: column;
+    gap: 3px 0;
+}
+
+.user__account-block-txt #userNickname{
+    font-family: "Inter", sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: $active;
+}
+
+.user-correct{
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: $nickName;
+}
+
+.user__nav-btn{
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: $nickName;
+    background: transparent;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid $nickName;
+    display: flex;
+    padding-bottom: 9px;
+}
+
+.user__nav-btn a{
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: $nickName;
+    text-decoration: none;
+}
+
+.user-wrapper{
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 33px 0;
+}
+
+.onPage a{
+    color: $active;
+}
+
+.onPage{
+    color: $active;
+    border-bottom: 1px solid $active;
+}

@@ -1,0 +1,103 @@
+.AuthHeader{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.AuthHeader h1{
+    font-family: "Oswald";
+    font-size: 30px;
+    font-weight: 600;
+    color: $nickName;
+}
+
+.loginMain{
+    @include center-container;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px 0;
+}
+
+.auth__conyainer{
+    margin-top: 80px;
+    background-color: $nickName;
+    border: none;
+    border-radius: 10px;
+    max-width: 460px;
+    width: 100%;
+}
+
+#login{
+    padding: 40px 40px;
+}
+
+.auth__conyainer h2{
+    font-family: "Montserrat";
+    font-size: 30px;
+    font-weight: 600;
+    color: $blackTxt;
+    padding-bottom: 30px;
+}
+
+.auth__conyainer label{
+    display: block;
+    font-family: "Inter", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: $blackTxt;
+    padding-bottom: 15px;
+}
+
+.auth__conyainer input{
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+    border: 1px solid $blackTxt;
+    border-radius: 2px;
+    font-size: 14px;
+    padding: 0 14px;
+    margin-bottom: 30px;
+}
+
+.auth__conyainer button{
+    margin-top: 30px;
+    background: linear-gradient(to right, #536976, #292E49);
+    width: 100%;
+    height: 59px;
+    border: none;
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    color: $nickName;
+    border: none;
+    border-radius: 9px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.authChange__block{
+    margin-bottom: 80px;
+    background-color: $nickName;
+    max-width: 460px;
+    width: 100%;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0 10px;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.authChange__block span{
+    color: $blackTxt;
+}
+
+.authChange__block a{
+    text-decoration: none;
+    color: $active;
+}

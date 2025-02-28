@@ -1,0 +1,74 @@
+.content{
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0 20px;
+}
+
+.content-blog{
+    display: flex;
+    flex-direction: column;
+    gap:20px 0;
+    flex-grow: 1;
+}
+
+.content-blog article{
+    background-color: $blocks;
+}
+
+.devBlogs{
+    position: sticky;
+    top: 20px;
+    right: 0;
+    background-color: $blocks;
+    width: 365px;
+    align-self: flex-start;
+    height: fit-content;
+}
+
+.devBlogs-wrapper{
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px 0;
+}
+
+.devBlogs__header {
+    width: 325px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: $mainTxt;
+    padding-bottom: 9px;
+    border-bottom: 1px solid $mainTxt;
+}
+
+.devBlogs article{
+    padding: 20px 20px;
+    background-color: $mainBack;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.devBlogs article p{
+    font-family: "Inter", sans-serif;
+    font-size: 18px;
+    text-align: justify;
+    font-weight: 400;
+    color: $mainTxt;
+}
+
+.devBlogs .top{
+    display: flex;
+    align-items: center;
+    padding-bottom: 9px;
+    gap: 0 20px;
+}
+
+.top h3{
+    font-family: "Montserrat";
+    font-size: 20px;
+    font-weight: 500;
+    color: $mainTxt;
+}

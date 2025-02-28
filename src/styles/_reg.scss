@@ -1,0 +1,27 @@
+#regForm{
+    padding: 40px 40px;
+}
+
+.regConfCompany{
+    display: flex;
+    gap: 0 10px;
+}
+
+#Agreement{
+    width: 17px;
+    height: 17px;
+}
+
+.regConfCompany span{
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: $blackTxt;
+}
+
+.regConfCompany a{
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: $orange;
+}

@@ -1,0 +1,113 @@
+.content-blog-item{
+    display: flex;
+    flex-direction: column;
+    gap: 10px 0;
+    box-sizing: border-box;
+    padding: 20px 20px;
+    width: 1135px;
+    background-color: $blocks;
+}
+
+.meta__user{
+    display: flex;
+    align-items: center;
+    gap: 0 20px;
+}
+
+.meta__user img{
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 2px;
+    object-fit: cover;
+}
+
+.meta__user span{
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: $nickName;
+}
+
+.meta__blog-name{
+    display: flex;
+    flex-direction: column;
+    gap: 10px 0;
+}
+
+.meta__blog-name h2{
+    font-family: 'Montserrat', sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: $mainTxt;
+}
+
+.meta__blog-name-category{
+    display: flex;
+    gap: 0 10px;
+}
+
+.meta__blog-name-category div{
+    width: 98px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $orange;
+    border-radius: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    color: $orange;
+}
+
+.meta__blog-content{
+    display: flex;
+    flex-direction: column;
+    gap: 20px 0;
+}
+
+#coverBlog{
+    width: 1094px;
+    height: 415px;
+    border: none;
+    border-radius: 10px;
+}
+
+.meta__blog-content p{
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: $mainTxt;
+    text-align: justify;
+}
+
+.meta__read-all{
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 29px;
+    display: box;
+    border: 1px solid $active;
+    border-radius: 3px;
+}
+
+#allBlog{
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: $active;
+    text-decoration: none;
+}
+
+.meta__blog-content-icons{
+    display: flex;
+    gap: 0 20px;
+}
+
+.meta__blog-content-icons button{
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+}

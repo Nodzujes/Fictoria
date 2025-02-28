@@ -1,0 +1,103 @@
+.modal--close{
+    display: none;
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 100px;
+    width: 100%; 
+    height: calc(100% - 100px);
+    overflow: auto; 
+    box-sizing: border-box;
+}
+
+.active{
+    display: flex; 
+    justify-content: end;
+}
+
+#modalUser{
+    background-color: $blocks;
+    width: 300px;
+    height: fit-content;
+    margin-right: 200px;
+}
+
+#modalUser .wrapper{
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 17px 0;
+}
+
+#modalUser .top{
+    display: flex;
+    flex-direction: column;
+    gap: 9px 0;
+}
+
+.top__user-info{
+    display: flex;
+    align-items: center;
+    gap: 0 10px;
+}
+
+.top__user-info img{
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 2px;
+}
+
+.top__user-info span{
+    font-family: "Inter", sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: $active;
+}
+
+.top__user-status{
+    display: flex;
+    flex-direction: column;
+    gap: 9px 0;
+    padding-bottom: 9px;
+    border-bottom: 1px solid $mainTxt;
+    font-family: "Inter", sans-serif;
+}
+
+#UserRealName{
+    font-size: 14px;
+    font-weight: 400;
+    color: $orange;
+}
+
+#UserStatus{
+    font-size: 14px;
+    font-weight: 300;
+    color: $nickName;
+}
+
+#modalUser a{
+    display: flex;
+    align-items: center;
+    gap: 0 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: $nickName;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.logout__btn{
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: $nickName;
+    width: fit-content;
+}
