@@ -13,35 +13,33 @@ const __dirname = path.resolve();
 
 dotenv.config();
 
-// Middleware для парсинга JSON
 app.use(express.json());
+app.use(cookieParser());
 
-// Подключаем маршруты аутентификации
+// Updated CORS configuration
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use('/api/auth', authRoutes);
 
-// Раздача файлов из билда
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Перенаправление всех маршрутов на index.html (для SPA)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.use(cors({
-    origin: 'http://localhost:5173', // Адрес фронтенда
-    credentials: true
-}));
-
-app.use(cookieParser());
-
 db.connect((err) => {
     if (err) {
         console.error('Ошибка подключения к БД:', err.stack);
-        return;
+        process.exit(1);
     }
     console.log('Подключение к БД установлено');
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`Сервер запущен на http://localhost:${port}`);
 });

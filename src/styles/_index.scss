@@ -95,9 +95,9 @@ header a{
 
 // Иконка пользователя
 .header__user{
-    display: none;
     border: none;
     background-color: transparent;
+    cursor: pointer;
 }
 
 .header__user img{

@@ -78,9 +78,9 @@ header a {
 }
 
 .header__user {
-  display: none;
   border: none;
   background-color: transparent;
+  cursor: pointer;
 }
 
 .header__user img {
@@ -506,7 +506,8 @@ footer a {
 }
 
 .modal--close {
-  display: none;
+  display: flex;
+  justify-content: end;
   position: fixed;
   z-index: 1;
   left: 0;
@@ -517,11 +518,6 @@ footer a {
   box-sizing: border-box;
 }
 
-.active {
-  display: flex;
-  justify-content: end;
-}
-
 #modalUser {
   background-color: #1C2329;
   width: 300px;
@@ -530,7 +526,7 @@ footer a {
   margin-right: 200px;
 }
 
-#modalUser .wrapper {
+#modalUser .wrapper-modal {
   padding: 20px 20px;
   display: flex;
   flex-direction: column;
