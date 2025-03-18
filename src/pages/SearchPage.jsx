@@ -7,7 +7,7 @@ function SearchPage() {
                 <div className="content__search-input">
                     <form>
                         <input type="text" className="search-input" placeholder="Поиск" />
-                        <button><img src="/public/icons/search.png" alt="иконка поиска" /></button>
+                        <button><img src="/icons/search.png" alt="иконка поиска" /></button>
                     </form>
                 </div>
                 <div className="content__search-resalt">

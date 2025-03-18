@@ -39,9 +39,9 @@ function Footer() {
                     <div className="footer__social block">
                         <div className="footer__titel">Социальные сети</div>
                         <div className="footer__social--links">
-                            <a href=""><img src="/public/icons/vk.png" alt="vk icon" />ВКонтакте</a>
-                            <a href=""><img src="/public/icons/tg.png" alt="tg icon" />Телеграмм</a>
-                            <a href=""><img src="/public/icons/yt.png" alt="tg icon" />YouTube</a>
+                            <a href=""><img src="/icons/vk.png" alt="vk icon" />ВКонтакте</a>
+                            <a href=""><img src="/icons/tg.png" alt="tg icon" />Телеграмм</a>
+                            <a href=""><img src="/icons/yt.png" alt="tg icon" />YouTube</a>
                         </div>
                     </div>
                 </div>
