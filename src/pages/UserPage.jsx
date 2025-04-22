@@ -1,15 +1,22 @@
 import { Link } from 'react-router-dom';
+import { useUser } from '../context/UserContext.jsx';
 
 function UserPage() {
+    const { user } = useUser();
+
     return (
         <>
             <section className="content">
                 <div className="content-blog indent">
                     <div className="content__header"><h1>Профиль</h1></div>
                     <div className="user__account-block">
-                        <img src="/images/userIcon.png" alt="user icon" />
+                        <img
+                            id='userIconModal'
+                            src={user?.avatarUrl || "/images/userIcon.png"}
+                            alt="user icon"
+                        />
                         <div className="user__account-block-txt">
-                            <span id='userNickname'>Keanu_Reeves</span>
+                            <span id='userNickname'>{user?.nickname || "Гость"}</span>
                             <span className='user-correct'>Пользователь</span>
                         </div>
                     </div>
@@ -24,7 +31,7 @@ function UserPage() {
                 </aside>
             </section>
         </>
-    )
+    );
 }
 
 export default UserPage;

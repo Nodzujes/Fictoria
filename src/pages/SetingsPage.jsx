@@ -1,11 +1,24 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useUser } from '../context/UserContext.jsx';
 
 function SetingsPage() {
     const fileInputRef = useRef(null);
-    const [avatar, setAvatar] = useState("/images/userIcon.png"); // Исходная аватарка
+    const [avatar, setAvatar] = useState("/images/userIcon.png");
     const [name, setName] = useState("");
     const [status, setStatus] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState([]);
     const maxFileSize = 1 * 1024 * 1024; // 1MB в байтах
+    const { user, fetchUserProfile } = useUser();
+
+    // Загрузка данных пользователя при монтировании
+    useEffect(() => {
+        if (user) {
+            setAvatar(user.avatarUrl || "/images/userIcon.png");
+            setName(user.name || "");
+            setStatus(user.status || "");
+            setSelectedCategory(user.categories || []);
+        }
+    }, [user]);
 
     const changeFileClick = () => {
         fileInputRef.current.click();
@@ -33,11 +46,9 @@ function SetingsPage() {
     };
 
     // Работа с категориями
-    const [selectedCategory, setSelectedCategory] = useState([]);
-
     const toggleCategory = (category) => {
         setSelectedCategory((prev) => {
-            const updatedCategories = Array.isArray(prev) ? prev : []; // Убедимся, что prev — это массив
+            const updatedCategories = Array.isArray(prev) ? prev : [];
             return updatedCategories.includes(category)
                 ? updatedCategories.filter((c) => c !== category)
                 : [...updatedCategories, category];
@@ -63,8 +74,10 @@ function SetingsPage() {
             if (response.ok) {
                 alert("Настройки сохранены!");
                 if (data.avatarUrl) {
-                    setAvatar(data.avatarUrl); // Обновляем аватарку с URL от сервера
+                    setAvatar(data.avatarUrl);
                 }
+                // Обновляем данные пользователя
+                await fetchUserProfile();
             } else {
                 alert(data.message || "Ошибка при сохранении настроек");
             }

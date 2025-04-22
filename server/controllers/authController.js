@@ -204,3 +204,46 @@ export async function updateUserProfile(req, res) {
         }
     });
 }
+
+export async function getUserProfile(req, res) {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ message: 'Не авторизован' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = decoded.id;
+
+        
+    // Получение аватара пользователя из БД
+    const [user] = await db.promise().query(
+        'SELECT email, nickname, name, status, avatar_url FROM users WHERE id = ?', [userId]
+    );
+
+    if (user.length === 0) {
+        return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+
+    // Получаем категории пользователя
+    const [categories] = await db.promise().query(
+        'SELECT category FROM user_categories WHERE user_id = ?',
+        [userId]
+    );
+
+    const userData = {
+        email: user[0].email,
+        nickname: user[0].nickname,
+        name: user[0].name || '',
+        status: user[0].status || '',
+        avatarUrl: user[0].avatar_url,
+        categories: categories.map(c => c.category)
+    };
+
+    res.status(200).json(userData);
+
+    } catch (error) {
+        console.error('Ошибка при получении профиля:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}

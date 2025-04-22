@@ -1,7 +1,10 @@
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { useUser } from '../context/UserContext.jsx';
 
 function ModalUser({ isOpen, onClose, onLogout }) {
+    const { user } = useUser();
+
     const handleOutsideClick = (event) => {
         if (event.target.className === 'modal--close') {
             onClose();
@@ -9,7 +12,7 @@ function ModalUser({ isOpen, onClose, onLogout }) {
     };
 
     const handleLogoutClick = () => {
-        onLogout(); // Вызываем функцию выхода
+        onLogout();
     };
 
     if (!isOpen) return null;
@@ -20,16 +23,20 @@ function ModalUser({ isOpen, onClose, onLogout }) {
                 <div className="wrapper-modal">
                     <div className="top">
                         <div className="top__user-info">
-                            <img id="userIconModal" src="/images/userIcon.png" alt="иконка пользователя" />
-                            <span id="userNameModal">Keanu_Reeves</span>
+                            <img
+                                id="userIconModal"
+                                src={user?.avatarUrl || "/images/userIcon.png"}
+                                alt="иконка пользователя"
+                            />
+                            <span id="userNameModal">{user?.nickname || "Гость"}</span>
                         </div>
                         <div className="top__user-status">
-                            <span id="UserRealName">Киану Ривз</span>
-                            <span id="UserStatus">Снимался в матрице</span>
+                            <span id="UserRealName">{user?.name || "Имя не указано"}</span>
+                            <span id="UserStatus">{user?.status || "Статус не указан"}</span>
                         </div>
                     </div>
                     <Link to="/user"><img src="/icons/user.png" alt="иконка для кнопки" /><span>Мой профиль</span></Link>
-                    <a href="/setings"><img src="/icons/settings.png" alt="иконка настроек" /><span>Настройки</span></a>
+                    <Link to="/setings"><img src="/icons/settings.png" alt="иконка настроек" /><span>Настройки</span></Link>
                     <button className="logout__btn" onClick={handleLogoutClick}>
                         <img src="/icons/logout.png" alt="иконка выхода" />
                         <span>Выйти</span>

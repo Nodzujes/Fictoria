@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import ModalUser from '../components/ModalUser.jsx';
+import { useUser } from '../context/UserContext.jsx';
 
 function Header() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const userButtonRef = useRef(null);
+    const { user, logout } = useUser();
 
     useEffect(() => {
         const checkAuthentication = async () => {
@@ -32,24 +34,24 @@ function Header() {
         checkAuthentication();
     }, []);
 
+    // Синхронизируем isAuthenticated с данными из UserContext
+    useEffect(() => {
+        if (user) {
+            setIsAuthenticated(true);
+        } else {
+            setIsAuthenticated(false);
+        }
+    }, [user]);
+
     const handleUserIconClick = () => {
         setIsModalOpen(true);
     };
 
-    // Функция для выхода, обновляет состояние
     const handleLogout = async () => {
         try {
-            const response = await fetch('http://localhost:5277/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Ошибка при выходе');
-            }
-
-            setIsAuthenticated(false); // Обновляем состояние авторизации
-            setIsModalOpen(false); // Закрываем модальное окно
+            await logout(); // Используем logout из UserContext
+            setIsAuthenticated(false);
+            setIsModalOpen(false);
         } catch (error) {
             console.error('Ошибка при выходе:', error.message);
         }
@@ -85,7 +87,11 @@ function Header() {
                             ref={userButtonRef}
                             onClick={handleUserIconClick}
                         >
-                            <img id='userHeader' src="/images/userIcon.png" alt="Иконка пользователя" />
+                            <img
+                                id='userHeader'
+                                src={user?.avatarUrl || "/images/userIcon.png"}
+                                alt="Иконка пользователя"
+                            />
                         </button>
                     ) : (
                         <button className='header__login'>
@@ -97,7 +103,7 @@ function Header() {
             <ModalUser
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onLogout={handleLogout} // Передаем функцию выхода
+                onLogout={handleLogout}
             />
         </header>
     );
