@@ -3,9 +3,44 @@ import db from '../config/db.js';
 import { hashPassword } from '../middlewares/hashPassword.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
+
+// Multer configuration for avatar upload
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = 'public/uploads/avatars';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname)); // Исправлено: originalName -> originalname
+    }
+});
+
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        if (!file || !file.originalname) {
+            return cb(new Error('Файл не предоставлен или имеет неверный формат'));
+        }
+        const filetypes = /jpeg|jpg|png|gif/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase()); // Исправлено: originalName -> originalname
+        const mimetype = filetypes.test(file.mimetype);
+        if (extname && mimetype) {
+            return cb(null, true);
+        }
+        cb(new Error('Только файлы JPG, PNG или GIF разрешены'));
+    },
+    limits: { fileSize: 1 * 1024 * 1024 } // 1MB limit
+}).single('avatar');
 
 export async function regUser(req, res) {
     const { email, nickname, password } = req.body;
@@ -102,17 +137,70 @@ export async function checkAuth(req, res) {
     }
 }
 
-// Новая функция для выхода
 export async function logoutUser(req, res) {
     try {
-        // Очищаем cookie с токеном
         res.clearCookie('token', {
             httpOnly: true,
-            secure: false, // Должно совпадать с настройками при установке
+            secure: false,
         });
         res.status(200).json({ message: 'Выход выполнен успешно' });
     } catch (error) {
         console.error('Ошибка при выходе:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
+}
+
+export async function updateUserProfile(req, res) {
+    upload(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({ message: err.message });
+        }
+
+        const token = req.cookies.token;
+        if (!token) {
+            return res.status(401).json({ message: 'Не авторизован' });
+        }
+
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            const userId = decoded.id;
+            const { name, status, categories } = req.body;
+            let avatarUrl = '/public/images/userIcon.png'; // Default avatar
+
+            if (req.file) {
+                avatarUrl = `/uploads/avatars/${req.file.filename}`;
+                // Delete old avatar if it exists and is not the default
+                const [user] = await db.promise().query('SELECT avatar_url FROM users WHERE id = ?', [userId]);
+                const oldAvatar = user[0].avatar_url;
+                if (oldAvatar !== '/public/images/userIcon.png' && fs.existsSync(path.join('public', oldAvatar))) {
+                    fs.unlinkSync(path.join('public', oldAvatar));
+                }
+            }
+
+            // Update user profile
+            await db.promise().query(
+                'UPDATE users SET name = ?, status = ?, avatar_url = ? WHERE id = ?',
+                [name || null, status || null, avatarUrl, userId]
+            );
+
+            // Handle categories
+            if (categories) {
+                const parsedCategories = JSON.parse(categories);
+                // Clear existing categories
+                await db.promise().query('DELETE FROM user_categories WHERE user_id = ?', [userId]);
+                // Insert new categories
+                for (const category of parsedCategories) {
+                    await db.promise().query(
+                        'INSERT INTO user_categories (user_id, category) VALUES (?, ?)',
+                        [userId, category]
+                    );
+                }
+            }
+
+            res.status(200).json({ message: 'Профиль обновлен', avatarUrl });
+        } catch (error) {
+            console.error('Ошибка при обновлении профиля:', error);
+            res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+        }
+    });
 }

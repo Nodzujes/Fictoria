@@ -72,7 +72,7 @@ function RegisterPage() {
                         <span>Я принимаю условия <a href="#">пользовательского соглашения</a></span>
                     </div>
 
-                    <button type="submit">Авторизация</button>
+                    <button type="submit">Зарегистрироваться</button>
                 </form>
             </div>
             <div className="authChange__block">

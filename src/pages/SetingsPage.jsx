@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 
 function SetingsPage() {
     const fileInputRef = useRef(null);
-    const [avatar, setAvatar] = useState("/images/userIcon.png"); //Исходная аватарка
+    const [avatar, setAvatar] = useState("/images/userIcon.png"); // Исходная аватарка
+    const [name, setName] = useState("");
+    const [status, setStatus] = useState("");
     const maxFileSize = 1 * 1024 * 1024; // 1MB в байтах
 
     const changeFileClick = () => {
@@ -28,9 +30,9 @@ function SetingsPage() {
             };
             reader.readAsDataURL(file);
         }
-    }
+    };
 
-    //Работа с категориями
+    // Работа с категориями
     const [selectedCategory, setSelectedCategory] = useState([]);
 
     const toggleCategory = (category) => {
@@ -42,6 +44,36 @@ function SetingsPage() {
         });
     };
 
+    const saveSettings = async () => {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("status", status);
+        formData.append("categories", JSON.stringify(selectedCategory));
+        if (fileInputRef.current.files[0]) {
+            formData.append("avatar", fileInputRef.current.files[0]);
+        }
+
+        try {
+            const response = await fetch("http://localhost:5277/api/auth/update-profile", {
+                method: "POST",
+                credentials: "include",
+                body: formData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert("Настройки сохранены!");
+                if (data.avatarUrl) {
+                    setAvatar(data.avatarUrl); // Обновляем аватарку с URL от сервера
+                }
+            } else {
+                alert(data.message || "Ошибка при сохранении настроек");
+            }
+        } catch (error) {
+            console.error("Ошибка при сохранении настроек:", error);
+            alert("Ошибка сервера");
+        }
+    };
+
     const categories = ["Комиксы", "Фильмы", "Сериалы", "Аниме", "Манга", "Другое"];
 
     return (
@@ -51,12 +83,22 @@ function SetingsPage() {
                 <div className="setings__grid-container">
                     <div className="userRealName-input">
                         <h2>Настоящие имя</h2>
-                        <input type="text" maxLength={40} />
+                        <input
+                            type="text"
+                            maxLength={40}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
                         <span>Укажите ваши имя и фамилию. Максимум 40 символов</span>
                     </div>
                     <div className="userStatus-input">
                         <h2>Выбирете статус</h2>
-                        <input type="text" maxLength={30} />
+                        <input
+                            type="text"
+                            maxLength={30}
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                        />
                         <span>Укажите ваши статус. Максимум 30 символов</span>
                     </div>
                     <div className="userChooseIcon-block">
@@ -66,20 +108,29 @@ function SetingsPage() {
                         <span>Максимальный размер файла: 1Mb.</span>
                         <span>Рекомендуется: до 300x300px.</span>
                         <button onClick={changeFileClick}>Загрузить</button>
-                        <input type="file" ref={fileInputRef} style={{ display: "none" }} accept="image/png, image/jpeg, image/gif" onChange={changeFile} />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: "none" }}
+                            accept="image/png, image/jpeg, image/gif"
+                            onChange={changeFile}
+                        />
                     </div>
                 </div>
                 <div className="setings__block__themes">
                     <div className="setings__block__themes-header">Что вас интерисует</div>
                     <div className="setings__block__themes-choose">
                         {categories.map((category) => (
-                            <button key={category}
+                            <button
+                                key={category}
                                 className={selectedCategory.includes(category) ? "selected" : ""}
                                 onClick={() => toggleCategory(category)}
-                            >{category}</button>
+                            >
+                                {category}
+                            </button>
                         ))}
                     </div>
-                    <button id="saveSetings">Сохранить изменения</button>
+                    <button id="saveSetings" onClick={saveSettings}>Сохранить изменения</button>
                 </div>
             </div>
         </>

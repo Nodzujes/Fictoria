@@ -16,7 +16,6 @@ dotenv.config();
 app.use(express.json());
 app.use(cookieParser());
 
-// Updated CORS configuration
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true,
@@ -26,6 +25,8 @@ app.use(cors({
 
 app.use('/api/auth', authRoutes);
 
+// Serve static files from public directory (including uploads)
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('*', (req, res) => {
