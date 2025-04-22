@@ -1,16 +1,23 @@
 import { Link } from 'react-router-dom';
 import MainBlog from '../components/MainBlog.jsx';
+import { useUser } from '../context/UserContext.jsx';
 
 function UserBlogs() {
+    const { user } = useUser();
+
     return (
         <>
             <section className="content">
                 <div className="content-blog">
                     <div className="content__header"><Link to="/user"><h1>Профиль</h1></Link></div>
                     <div className="user__account-block">
-                        <img src="/images/userIcon.png" alt="user icon" />
+                        <img
+                            id='userIconModal'
+                            src={user?.avatarUrl || "/images/userIcon.png"}
+                            alt="user icon"
+                        />
                         <div className="user__account-block-txt">
-                            <span id='userNickname'>Keanu_Reeves</span>
+                            <span id='userNickname'>{user?.nickname || "Гость"}</span>
                             <span className='user-correct'>Пользователь</span>
                         </div>
                     </div>

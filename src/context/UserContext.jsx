@@ -5,9 +5,11 @@ const UserContext = createContext();
 
 export function UserProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); // Добавляем состояние загрузки
 
     const fetchUserProfile = async () => {
         try {
+            setIsLoading(true);
             const response = await fetch('http://localhost:5277/api/auth/profile', {
                 method: 'GET',
                 credentials: 'include',
@@ -21,6 +23,8 @@ export function UserProvider({ children }) {
         } catch (error) {
             console.error('Ошибка при получении профиля:', error);
             setUser(null);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -41,7 +45,7 @@ export function UserProvider({ children }) {
     }, []);
 
     return (
-        <UserContext.Provider value={{ user, setUser, fetchUserProfile, logout }}>
+        <UserContext.Provider value={{ user, setUser, fetchUserProfile, logout, isLoading }}>
             {children}
         </UserContext.Provider>
     );

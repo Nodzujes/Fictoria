@@ -1,47 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import ModalUser from '../components/ModalUser.jsx';
 import { useUser } from '../context/UserContext.jsx';
 
 function Header() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const userButtonRef = useRef(null);
-    const { user, logout } = useUser();
-
-    useEffect(() => {
-        const checkAuthentication = async () => {
-            try {
-                const response = await fetch('http://localhost:5277/api/auth/check', {
-                    credentials: 'include',
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Ошибка сети: ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                setIsAuthenticated(data.isAuthenticated);
-            } catch (error) {
-                console.error('Ошибка проверки авторизации:', error.message);
-                setIsAuthenticated(false);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        checkAuthentication();
-    }, []);
-
-    // Синхронизируем isAuthenticated с данными из UserContext
-    useEffect(() => {
-        if (user) {
-            setIsAuthenticated(true);
-        } else {
-            setIsAuthenticated(false);
-        }
-    }, [user]);
+    const { user, logout, isLoading } = useUser();
 
     const handleUserIconClick = () => {
         setIsModalOpen(true);
@@ -49,8 +14,7 @@ function Header() {
 
     const handleLogout = async () => {
         try {
-            await logout(); // Используем logout из UserContext
-            setIsAuthenticated(false);
+            await logout();
             setIsModalOpen(false);
         } catch (error) {
             console.error('Ошибка при выходе:', error.message);
@@ -81,7 +45,7 @@ function Header() {
                 <div className="mainHeader__buttons">
                     <a href="#"><img src="/images/button_edit.png" alt="Button to edit" /></a>
                     <Link to="/search"><img src="/images/button_search.png" alt="Button to search" /></Link>
-                    {isAuthenticated ? (
+                    {user ? (
                         <button
                             className='header__user'
                             ref={userButtonRef}
@@ -89,7 +53,7 @@ function Header() {
                         >
                             <img
                                 id='userHeader'
-                                src={user?.avatarUrl || "/images/userIcon.png"}
+                                src={user.avatarUrl || "/images/userIcon.png"}
                                 alt="Иконка пользователя"
                             />
                         </button>
