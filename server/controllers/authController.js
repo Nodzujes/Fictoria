@@ -165,30 +165,39 @@ export async function updateUserProfile(req, res) {
             const decoded = jwt.verify(token, JWT_SECRET);
             const userId = decoded.id;
             const { name, status, categories } = req.body;
-            let avatarUrl = '/public/images/userIcon.png'; // Default avatar
 
+            // Получаем текущие данные пользователя
+            const [user] = await db.promise().query('SELECT name, status, avatar_url FROM users WHERE id = ?', [userId]);
+            if (user.length === 0) {
+                return res.status(404).json({ message: 'Пользователь не найден' });
+            }
+
+            // Определяем значения для обновления
+            const updatedName = name !== undefined ? (name.trim() === '' ? null : name) : user[0].name;
+            const updatedStatus = status !== undefined ? (status.trim() === '' ? null : status) : user[0].status;
+            let updatedAvatarUrl = user[0].avatar_url; // Сохраняем текущую аватарку по умолчанию
+
+            // Если загружен новый файл аватарки
             if (req.file) {
-                avatarUrl = `/uploads/avatars/${req.file.filename}`;
-                // Delete old avatar if it exists and is not the default
-                const [user] = await db.promise().query('SELECT avatar_url FROM users WHERE id = ?', [userId]);
-                const oldAvatar = user[0].avatar_url;
-                if (oldAvatar !== '/public/images/userIcon.png' && fs.existsSync(path.join('public', oldAvatar))) {
-                    fs.unlinkSync(path.join('public', oldAvatar));
+                updatedAvatarUrl = `/uploads/avatars/${req.file.filename}`;
+                // Удаляем старую аватарку, если она не дефолтная
+                if (user[0].avatar_url !== '/public/images/userIcon.png' && fs.existsSync(path.join('public', user[0].avatar_url))) {
+                    fs.unlinkSync(path.join('public', user[0].avatar_url));
                 }
             }
 
-            // Update user profile
+            // Обновляем данные пользователя
             await db.promise().query(
                 'UPDATE users SET name = ?, status = ?, avatar_url = ? WHERE id = ?',
-                [name || null, status || null, avatarUrl, userId]
+                [updatedName, updatedStatus, updatedAvatarUrl, userId]
             );
 
-            // Handle categories
-            if (categories) {
-                const parsedCategories = JSON.parse(categories);
-                // Clear existing categories
+            // Обновляем категории, если они были отправлены
+            if (categories !== undefined) {
+                const parsedCategories = categories ? JSON.parse(categories) : [];
+                // Очищаем существующие категории
                 await db.promise().query('DELETE FROM user_categories WHERE user_id = ?', [userId]);
-                // Insert new categories
+                // Добавляем новые категории
                 for (const category of parsedCategories) {
                     await db.promise().query(
                         'INSERT INTO user_categories (user_id, category) VALUES (?, ?)',
@@ -197,7 +206,7 @@ export async function updateUserProfile(req, res) {
                 }
             }
 
-            res.status(200).json({ message: 'Профиль обновлен', avatarUrl });
+            res.status(200).json({ message: 'Профиль обновлен', avatarUrl: updatedAvatarUrl });
         } catch (error) {
             console.error('Ошибка при обновлении профиля:', error);
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });

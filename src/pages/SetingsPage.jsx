@@ -8,7 +8,7 @@ function SetingsPage() {
     const [status, setStatus] = useState("");
     const [selectedCategory, setSelectedCategory] = useState([]);
     const maxFileSize = 1 * 1024 * 1024; // 1MB в байтах
-    const { user, fetchUserProfile } = useUser();
+    const { user, fetchUserProfile, isLoading } = useUser();
 
     // Загрузка данных пользователя при монтировании
     useEffect(() => {
@@ -57,11 +57,25 @@ function SetingsPage() {
 
     const saveSettings = async () => {
         const formData = new FormData();
-        formData.append("name", name);
-        formData.append("status", status);
-        formData.append("categories", JSON.stringify(selectedCategory));
+
+        // Добавляем только измененные поля
+        if (name !== (user?.name || '')) {
+            formData.append("name", name);
+        }
+        if (status !== (user?.status || '')) {
+            formData.append("status", status);
+        }
+        if (JSON.stringify(selectedCategory.sort()) !== JSON.stringify((user?.categories || []).sort())) {
+            formData.append("categories", JSON.stringify(selectedCategory));
+        }
         if (fileInputRef.current.files[0]) {
             formData.append("avatar", fileInputRef.current.files[0]);
+        }
+
+        // Если нет изменений, уведомляем пользователя
+        if (![...formData.entries()].length) {
+            alert("Нет изменений для сохранения");
+            return;
         }
 
         try {
@@ -88,6 +102,10 @@ function SetingsPage() {
     };
 
     const categories = ["Комиксы", "Фильмы", "Сериалы", "Аниме", "Манга", "Другое"];
+
+    if (isLoading) {
+        return <div>Загрузка...</div>;
+    }
 
     return (
         <>
