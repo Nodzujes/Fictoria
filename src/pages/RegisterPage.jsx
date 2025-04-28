@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate} from 'react-router-dom';
 
 function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -9,6 +9,11 @@ function RegisterPage() {
         confirmPassword: '',
         agreement: false
     });
+    
+    const [showModal, setShowModal] = useState(false);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -30,6 +35,7 @@ function RegisterPage() {
             return;
         }
 
+        setIsLoading(true);
         try {
             const response = await fetch('http://localhost:5277/api/auth/register', {
                 method: 'POST',
@@ -42,9 +48,41 @@ function RegisterPage() {
             });
 
             const data = await response.json();
-            alert(data.message); // Выводим ответ сервера через alert
+            if (response.ok) {
+                setShowModal(true);
+                alert('Код подтверждения отправлен на ваш email');
+            } else {
+                alert(data.message);
+            }
         } catch (error) {
             alert('Ошибка сервера');
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerify = async () => {
+        try {
+            const response = await fetch('http://localhost:5277/api/auth/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    code: verificationCode
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Аккаунт успешно подтвержден');
+                setShowModal(false);
+                navigate('/login');
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            alert('Ошибка при подтверждении');
             console.error(error);
         }
     };
@@ -72,13 +110,48 @@ function RegisterPage() {
                         <span>Я принимаю условия <a href="#">пользовательского соглашения</a></span>
                     </div>
 
-                    <button type="submit">Зарегистрироваться</button>
+                    <button type="submit" disabled={isLoading}> {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}</button>
                 </form>
             </div>
             <div className="authChange__block">
                 <span>Уже есть аккаунт</span>
                 <Link to="/login">Войти</Link>
             </div>
+            {showModal && (
+                <div className="modal" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        padding: '20px',
+                        borderRadius: '5px',
+                        width: '300px'
+                    }}>
+                        <h3>Подтверждение Email</h3>
+                        <input
+                            type="text"
+                            placeholder="Введите код подтверждения"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
+                        />
+                        <button 
+                            onClick={handleVerify}
+                            style={{ width: '100%', padding: '8px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}
+                        >
+                            Подтвердить
+                        </button>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

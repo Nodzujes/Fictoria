@@ -6,9 +6,19 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // Multer configuration for avatar upload
 const storage = multer.diskStorage({
@@ -42,6 +52,10 @@ const upload = multer({
     limits: { fileSize: 1 * 1024 * 1024 } // 1MB limit
 }).single('avatar');
 
+const generateVerificationCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 export async function regUser(req, res) {
     const { email, nickname, password } = req.body;
 
@@ -56,15 +70,77 @@ export async function regUser(req, res) {
         }
 
         const hashedPassword = await hashPassword(password);
-
-        await db.promise().query(
+        const verificationCode = generateVerificationCode();
+        
+        const [result] = await db.promise().query(
             'INSERT INTO users (email, nickname, password) VALUES (?, ?, ?)',
             [email, nickname, hashedPassword]
         );
 
-        res.status(201).json({ message: 'Пользователь зарегистрирован' });
+        const userId = result.insertId;
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
+
+        await db.promise().query(
+            'INSERT INTO verification_codes (user_id, code, expires_at) VALUES (?, ?, ?)',
+            [userId, verificationCode, expiresAt]
+        );
+
+        // Отправка email с кодом
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Код подтверждения для Fictoria',
+            text: `Ваш код подтверждения: ${verificationCode}\nКод действителен 15 минут.`
+        });
+
+        res.status(201).json({ message: 'Пользователь зарегистрирован, проверьте email для подтверждения' });
     } catch (error) {
         console.error('Ошибка при регистрации:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function verifyUser(req, res) {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+        return res.status(400).json({ message: 'Необходимо указать email и код' });
+    }
+
+    try {
+        const [users] = await db.promise().query('SELECT id FROM users WHERE email = ?', [email]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Пользователь не найден' });
+        }
+
+        const userId = users[0].id;
+        const [codes] = await db.promise().query(
+            'SELECT * FROM verification_codes WHERE user_id = ? AND code = ?',
+            [userId, code]
+        );
+
+        if (codes.length === 0) {
+            return res.status(400).json({ message: 'Неверный код подтверждения' });
+        }
+
+        const verification = codes[0];
+        if (new Date(verification.expires_at) < new Date()) {
+            return res.status(400).json({ message: 'Код подтверждения истек' });
+        }
+
+        await db.promise().query(
+            'UPDATE users SET is_verified = 1 WHERE id = ?',
+            [userId]
+        );
+
+        await db.promise().query(
+            'DELETE FROM verification_codes WHERE user_id = ?',
+            [userId]
+        );
+
+        res.status(200).json({ message: 'Аккаунт успешно подтвержден' });
+    } catch (error) {
+        console.error('Ошибка при верификации:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }
@@ -85,6 +161,10 @@ export async function loginUser(req, res) {
         }
 
         const user = users[0];
+        if (!user.is_verified) {
+            return res.status(403).json({ message: 'Подтвердите email перед входом' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
