@@ -162,7 +162,7 @@ export async function loginUser(req, res) {
 
         const user = users[0];
         if (!user.is_verified) {
-            return res.status(403).json({ message: 'Подтвердите email перед входом' });
+            return res.status(403).json({ message: 'Подтвердите email перед входом' }); // Исправляем сообщение
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -190,6 +190,52 @@ export async function loginUser(req, res) {
         });
     } catch (error) {
         console.error('Ошибка при входе:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function resendVerificationCode(req, res) {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: 'Email обязателен' });
+    }
+
+    try {
+        const [users] = await db.promise().query('SELECT id, is_verified FROM users WHERE email = ?', [email]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Пользователь не найден' });
+        }
+
+        const user = users[0];
+        if (user.is_verified) {
+            return res.status(400).json({ message: 'Аккаунт уже подтвержден' });
+        }
+
+        const userId = user.id;
+        const verificationCode = generateVerificationCode();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+        // Удаляем старые коды
+        await db.promise().query('DELETE FROM verification_codes WHERE user_id = ?', [userId]);
+
+        // Создаем новый код
+        await db.promise().query(
+            'INSERT INTO verification_codes (user_id, code, expires_at) VALUES (?, ?, ?)',
+            [userId, verificationCode, expiresAt]
+        );
+
+        // Отправляем новый код
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Новый код подтверждения для Fictoria',
+            text: `Ваш новый код подтверждения: ${verificationCode}\nКод действителен 15 минут.`
+        });
+
+        res.status(200).json({ message: 'Новый код подтверждения отправлен' });
+    } catch (error) {
+        console.error('Ошибка при отправке кода подтверждения:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }

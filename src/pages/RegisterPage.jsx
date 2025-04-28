@@ -118,37 +118,16 @@ function RegisterPage() {
                 <Link to="/login">Войти</Link>
             </div>
             {showModal && (
-                <div className="modal" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}>
-                    <div style={{
-                        background: 'white',
-                        padding: '20px',
-                        borderRadius: '5px',
-                        width: '300px'
-                    }}>
+                <div className="modal">
+                    <div className='modal-content'>
                         <h3>Подтверждение Email</h3>
                         <input
                             type="text"
                             placeholder="Введите код подтверждения"
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
-                            style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
                         />
-                        <button 
-                            onClick={handleVerify}
-                            style={{ width: '100%', padding: '8px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}
-                        >
-                            Подтвердить
-                        </button>
+                        <button className='btnModalVer' onClick={handleVerify}>Подтвердить</button>
                     </div>
                 </div>
             )}

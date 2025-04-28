@@ -101,3 +101,28 @@
     text-decoration: none;
     color: $active;
 }
+
+.btnModalVer{
+    width: 100%;
+    padding: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    background: linear-gradient(to right, #536976, #292E49);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btnModalVerNew{
+    width: 100%;
+    padding: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    background: linear-gradient(to right, #76b852, #8DC26F);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}

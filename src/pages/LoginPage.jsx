@@ -6,11 +6,15 @@ function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const { fetchUserProfile } = useUser(); // Импортируем fetchUserProfile
+    const { fetchUserProfile } = useUser();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
 
         try {
             const response = await fetch('http://localhost:5277/api/auth/login', {
@@ -25,14 +29,67 @@ function Login() {
             const data = await response.json();
 
             if (!response.ok) {
+                if (data.message === 'Подтвердите email перед входом') {
+                    setShowModal(true);
+                    return;
+                }
                 throw new Error(data.message || 'Ошибка авторизации');
             }
 
-            // Успешная авторизация — загружаем данные пользователя и перенаправляем
-            await fetchUserProfile(); // Загружаем данные пользователя
+            await fetchUserProfile();
             navigate('/');
         } catch (err) {
             setError(err.message);
+        }
+    };
+
+    const handleVerify = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:5277/api/auth/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    code: verificationCode
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Аккаунт успешно подтвержден');
+                setShowModal(false);
+                await handleSubmit({ preventDefault: () => {} });
+            } else {
+                setError(data.message);
+            }
+        } catch (error) {
+            setError('Ошибка при подтверждении');
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResendCode = async () => {
+        try {
+            const response = await fetch('http://localhost:5277/api/auth/resend-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Новый код подтверждения отправлен на ваш email');
+            } else {
+                setError(data.message);
+            }
+        } catch (error) {
+            setError('Ошибка при отправке кода');
+            console.error(error);
         }
     };
 
@@ -71,6 +128,29 @@ function Login() {
                 <span>Ещё нет аккаунта?</span>
                 <Link to="/reg">Зарегистрируйтесь</Link>
             </div>
+
+            {showModal && (
+                <div className="modal">
+                    <div className='modal-content'>
+                        <h3>Подтверждение Email</h3>
+                        <p>Ваш email не подтвержден. Введите код, отправленный на ваш email.</p>
+                        <input
+                            type="text"
+                            placeholder="Введите код подтверждения"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                        />
+                        <button className='btnModalVer' onClick={handleVerify} disabled={isLoading}>
+                            {isLoading ? 'Подтверждение...' : 'Подтвердить'}
+                        </button>
+                        <button className='btnModalVerNew'
+                            onClick={handleResendCode}
+                        >
+                            Отправить новый код
+                        </button>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

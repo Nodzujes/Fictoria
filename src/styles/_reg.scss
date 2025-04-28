@@ -36,6 +36,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
+}
+
+.modal h3,
+p{
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    margin: 10px 0;
 }
 
 .modal-content {
@@ -51,18 +59,4 @@
     margin-bottom: 10px;
     padding: 8px;
     box-sizing: border-box;
-}
-
-.modal-content button {
-    width: 100%;
-    padding: 8px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.modal-content button:hover {
-    background: #0056b3;
 }
