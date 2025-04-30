@@ -7,9 +7,12 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import nodemailer from 'nodemailer';
+import fetch from 'node-fetch';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
+const RECAPTCHA_SECRET_KEY = '6LeMTdsqAAAAAKrClj9hNFygUyDFKYkEvud0sRrJ';
+
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -54,6 +57,20 @@ const upload = multer({
 
 const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Функция для проверки reCAPTCHA токена
+const verifyRecaptcha = async (token) => {
+    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `secret=${RECAPTCHA_SECRET_KEY}&response=${token}`
+    });
+
+    const data = await response.json();
+    return data.success;
 };
 
 export async function regUser(req, res) {
@@ -146,10 +163,16 @@ export async function verifyUser(req, res) {
 }
 
 export async function loginUser(req, res) {
-    const { email, password } = req.body;
+    const { email, password, recaptchaToken } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Необходимо заполнить все поля' });
+    if (!email || !password || !recaptchaToken) {
+        return res.status(400).json({ message: 'Необходимо заполнить все поля и пройти капчу' });
+    }
+
+    // Проверяем reCAPTCHA
+    const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
+    if (!isRecaptchaValid) {
+        return res.status(400).json({ message: 'Ошибка проверки капчи. Подтвердите, что вы не робот' });
     }
 
     try {
@@ -162,7 +185,7 @@ export async function loginUser(req, res) {
 
         const user = users[0];
         if (!user.is_verified) {
-            return res.status(403).json({ message: 'Подтвердите email перед входом' }); // Исправляем сообщение
+            return res.status(403).json({ message: 'Подтвердите email перед входом' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);

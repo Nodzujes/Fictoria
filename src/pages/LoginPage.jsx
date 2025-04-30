@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useUser } from '../context/UserContext.jsx';
+import ReCAPTCHA from 'react-google-recaptcha'; // Импортируем библиотеку
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -9,12 +10,29 @@ function Login() {
     const [showModal, setShowModal] = useState(false);
     const [verificationCode, setVerificationCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState(null);
     const navigate = useNavigate();
     const { fetchUserProfile } = useUser();
+    const recaptchaRef = useRef(null); // Ссылка на компонент reCAPTCHA
+
+    // Callback для успешного прохождения reCAPTCHA
+    const onReCaptchaSuccess = useCallback((token) => {
+        setRecaptchaToken(token);
+    }, []);
+
+    // Callback для истечения срока действия токена reCAPTCHA
+    const onReCaptchaExpired = useCallback(() => {
+        setRecaptchaToken(null);
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!recaptchaToken) {
+            setError('Пожалуйста, подтвердите, что вы не робот');
+            return;
+        }
 
         try {
             const response = await fetch('http://localhost:5277/api/auth/login', {
@@ -23,7 +41,7 @@ function Login() {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, recaptchaToken }),
             });
 
             const data = await response.json();
@@ -40,6 +58,10 @@ function Login() {
             navigate('/');
         } catch (err) {
             setError(err.message);
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset(); // Сбрасываем капчу
+            }
+            setRecaptchaToken(null);
         }
     };
 
@@ -93,6 +115,14 @@ function Login() {
         }
     };
 
+    // Сбрасываем капчу при монтировании компонента
+    useEffect(() => {
+        if (recaptchaRef.current) {
+            recaptchaRef.current.reset();
+        }
+        setRecaptchaToken(null);
+    }, []);
+
     return (
         <>
             <div className="auth__conyainer">
@@ -121,6 +151,13 @@ function Login() {
                         required
                     />
 
+                    <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey="6LeMTdsqAAAAAIjCEA7JL71tJ9vLOAQJftVBq1od" // Ваш sitekey
+                        onChange={onReCaptchaSuccess}
+                        onExpired={onReCaptchaExpired}
+                    />
+
                     <button type="submit">Авторизация</button>
                 </form>
             </div>
@@ -143,9 +180,7 @@ function Login() {
                         <button className='btnModalVer' onClick={handleVerify} disabled={isLoading}>
                             {isLoading ? 'Подтверждение...' : 'Подтвердить'}
                         </button>
-                        <button className='btnModalVerNew'
-                            onClick={handleResendCode}
-                        >
+                        <button className='btnModalVerNew' onClick={handleResendCode}>
                             Отправить новый код
                         </button>
                     </div>
