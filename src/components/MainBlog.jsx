@@ -21,7 +21,7 @@ function MainBlog() {
             <div id="id_category">Сериалы</div>
           </div>
         </div>
-        <img id="coverBlog" src="/images/coverBlog.png" alt="оьложка статьи" />
+        <img id="coverBlog" src="/images/coverBlog.png" alt="обложка статьи" />
         <p id="descriptionBlog">
           Lorem Ipsum is simply dummy text of the printing and typesetting industry.
           Lorem Ipsum has been the industry&apos;s standard dummy text ever since the 1500s,

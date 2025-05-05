@@ -43,7 +43,7 @@ function Header() {
                     <li>Другое</li>
                 </ul>
                 <div className="mainHeader__buttons">
-                    <a href="#"><img src="/images/button_edit.png" alt="Button to edit" /></a>
+                    <Link to="/creator"><img src="/images/button_edit.png" alt="Button to edit" /></Link>
                     <Link to="/search"><img src="/images/button_search.png" alt="Button to search" /></Link>
                     {user ? (
                         <button
