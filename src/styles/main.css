@@ -1205,18 +1205,8 @@ p {
   color: #FF8C42;
 }
 
-#images__block-select img {
+.modal__Creator-select img {
   width: 50px;
-  height: 50px;
-}
-
-#text__block-select img {
-  width: 50px;
-  height: 50px;
-}
-
-#videos__block-select img {
-  width: 105px;
   height: 50px;
 }
 
