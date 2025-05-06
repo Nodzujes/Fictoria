@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import authRoutes from './routes/authRoutes.js';
+import postRoutes from './routes/postRoutes.js';
 import db from './config/db.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -24,6 +25,7 @@ app.use(cors({
 }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
 
 // Serve static files from public directory (including uploads)
 app.use(express.static(path.join(__dirname, 'public')));

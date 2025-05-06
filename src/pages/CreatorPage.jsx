@@ -6,9 +6,15 @@ function Creator() {
     const [selectedBlock, setSelectedBlock] = useState(null); // Храним выбранный блок для добавления
     const [showModal, setShowModal] = useState(false); // Управляем видимостью модального окна
     const [coverImage, setCoverImage] = useState(null); // Храним URL обложки
-    const [imageInputs, setImageInputs] = useState([]); // Храним состояния для input'ов блоков изображений
-    const [videoInputs, setVideoInputs] = useState([]); // Храним состояния для input'ов блоков видео
+    const [coverFile, setCoverFile] = useState(null); // Храним файл обложки
+    const [imageInputs, setImageInputs] = useState([]); // Храним URL'ы для отображения блоков изображений
+    const [imageFiles, setImageFiles] = useState([]); // Храним файлы изображений
+    const [videoInputs, setVideoInputs] = useState([]); // Храним URL'ы для отображения блоков видео
+    const [videoFiles, setVideoFiles] = useState([]); // Храним файлы видео
     const [selectedCategories, setSelectedCategories] = useState([]); // Храним выбранные категории
+    const [title, setTitle] = useState(''); // Храним заголовок статьи
+    const [introduction, setIntroduction] = useState(''); // Храним введение статьи
+    const [textBlocks, setTextBlocks] = useState([]); // Храним данные текстовых блоков
 
     // Refs для каждого элемента загрузки
     const coverInputRef = useRef(null);
@@ -45,8 +51,8 @@ function Creator() {
     const handleCategorySelect = (category) => {
         setSelectedCategories((prev) =>
             prev.includes(category)
-                ? prev.filter((c) => c !== category) // Убираем категорию, если она уже выбрана
-                : [...prev, category] // Добавляем категорию, если её нет
+                ? prev.filter((c) => c !== category)
+                : [...prev, category]
         );
     };
 
@@ -58,31 +64,51 @@ function Creator() {
             id: Date.now(),
         };
 
-        setBlocks((prevBlocks) => [...prevBlocks, newBlock]);
+        setBlocks((prevBlocks) => {
+            const updatedBlocks = [...prevBlocks, newBlock];
+            // Синхронизируем состояния
+            if (selectedBlock === 'images') {
+                setImageInputs((prev) => [...prev, Array(4).fill(null)]);
+                setImageFiles((prev) => [...prev, Array(4).fill(null)]);
+            } else if (selectedBlock === 'videos') {
+                setVideoInputs((prev) => [...prev, null]);
+                setVideoFiles((prev) => [...prev, null]);
+            } else if (selectedBlock === 'text') {
+                setTextBlocks((prev) => [...prev, { title: '', content: '' }]);
+            }
+            return updatedBlocks;
+        });
+
         setSelectedBlock(null);
         setShowModal(false);
-
-        // Инициализируем состояния для новых блоков изображений и видео
-        if (selectedBlock === 'images') {
-            setImageInputs((prev) => [...prev, Array(4).fill(null)]);
-        } else if (selectedBlock === 'videos') {
-            setVideoInputs((prev) => [...prev, null]);
-        }
     };
 
     const handleImageUpload = (event, index, blockIndex) => {
         const file = event.target.files[0];
         if (file) {
-            if (imageInputs[blockIndex]?.[index]) {
-                URL.revokeObjectURL(imageInputs[blockIndex][index]);
-            }
-            const url = URL.createObjectURL(file);
             setImageInputs((prev) => {
                 const newInputs = [...prev];
-                newInputs[blockIndex] = newInputs[blockIndex].map((img, i) =>
-                    i === index ? url : img
-                );
+                // Проверяем, существует ли newInputs[blockIndex], если нет — инициализируем
+                if (!newInputs[blockIndex]) {
+                    newInputs[blockIndex] = Array(4).fill(null);
+                }
+                // Освобождаем старую память, если URL уже существует
+                if (newInputs[blockIndex][index]) {
+                    URL.revokeObjectURL(newInputs[blockIndex][index]);
+                }
+                const url = URL.createObjectURL(file);
+                newInputs[blockIndex][index] = url;
                 return newInputs;
+            });
+
+            setImageFiles((prev) => {
+                const newFiles = [...prev];
+                // Проверяем, существует ли newFiles[blockIndex], если нет — инициализируем
+                if (!newFiles[blockIndex]) {
+                    newFiles[blockIndex] = Array(4).fill(null);
+                }
+                newFiles[blockIndex][index] = file;
+                return newFiles;
             });
         }
     };
@@ -95,22 +121,39 @@ function Creator() {
             }
             const url = URL.createObjectURL(file);
             setCoverImage(url);
+            setCoverFile(file);
         }
     };
 
     const handleVideoUpload = (event, blockIndex) => {
         const file = event.target.files[0];
         if (file) {
-            if (videoInputs[blockIndex]) {
-                URL.revokeObjectURL(videoInputs[blockIndex]);
-            }
-            const url = URL.createObjectURL(file);
             setVideoInputs((prev) => {
                 const newInputs = [...prev];
-                newInputs[blockIndex] = url;
+                if (newInputs[blockIndex]) {
+                    URL.revokeObjectURL(newInputs[blockIndex]);
+                }
+                newInputs[blockIndex] = URL.createObjectURL(file);
                 return newInputs;
             });
+
+            setVideoFiles((prev) => {
+                const newFiles = [...prev];
+                newFiles[blockIndex] = file;
+                return newFiles;
+            });
         }
+    };
+
+    const handleTextChange = (blockIndex, field, value) => {
+        setTextBlocks((prev) => {
+            const newTextBlocks = [...prev];
+            newTextBlocks[blockIndex] = {
+                ...newTextBlocks[blockIndex],
+                [field]: value,
+            };
+            return newTextBlocks;
+        });
     };
 
     const handleImageReplace = (event, index, blockIndex) => {
@@ -148,16 +191,121 @@ function Creator() {
         input.click();
     };
 
+    const handlePublish = async () => {
+        try {
+            const authResponse = await fetch('http://localhost:5277/api/auth/check', {
+                method: 'GET',
+                credentials: 'include',
+            });
+            const authData = await authResponse.json();
+
+            if (!authData.isAuthenticated) {
+                alert('Вы должны сначала зарегистрироваться, чтобы создать пост!');
+                return;
+            }
+
+            if (!title || !introduction || !coverFile) {
+                alert('Заполните все обязательные поля: заголовок, введение и обложку!');
+                return;
+            }
+
+            if (selectedCategories.length === 0) {
+                alert('Выберите хотя бы одну категорию!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('introduction', introduction);
+            formData.append('categories', JSON.stringify(selectedCategories));
+            formData.append('cover', coverFile);
+
+            const postBlocks = blocks.map((block, index) => {
+                if (block.type === 'text') {
+                    return {
+                        type: 'text',
+                        order: index + 1,
+                        title: textBlocks[index]?.title || '',
+                        content: textBlocks[index]?.content || '',
+                    };
+                } else if (block.type === 'images') {
+                    return {
+                        type: 'images',
+                        order: index + 1,
+                        mediaFiles: imageFiles[index] || [],
+                    };
+                } else if (block.type === 'videos') {
+                    return {
+                        type: 'videos',
+                        order: index + 1,
+                        mediaFile: videoFiles[index] || null,
+                    };
+                }
+                return null;
+            }).filter(block => block !== null);
+
+            formData.append('blocks', JSON.stringify(postBlocks));
+
+            postBlocks.forEach((block, blockIndex) => {
+                if (block.type === 'images') {
+                    block.mediaFiles.forEach((file, fileIndex) => {
+                        if (file) {
+                            formData.append(`images_${blockIndex}_${fileIndex}`, file);
+                        }
+                    });
+                } else if (block.type === 'videos' && block.mediaFile) {
+                    formData.append(`video_${blockIndex}`, block.mediaFile);
+                }
+            });
+
+            const response = await fetch('http://localhost:5277/api/posts/create', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include',
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert('Пост успешно опубликован!');
+                setTitle('');
+                setIntroduction('');
+                setSelectedCategories([]);
+                setCoverImage(null);
+                setCoverFile(null);
+                setBlocks([]);
+                setImageInputs([]);
+                setImageFiles([]);
+                setVideoInputs([]);
+                setVideoFiles([]);
+                setTextBlocks([]);
+            } else {
+                alert(`Ошибка при публикации: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Ошибка при публикации:', error);
+            alert('Произошла ошибка при публикации поста');
+        }
+    };
+
     const renderBlock = (block, blockIndex) => {
         switch (block.type) {
             case 'text':
                 return (
                     <form key={block.id} id={`text-block-blog-${block.id}`} className="text-block-blog">
                         <label htmlFor="">Заголовок текста</label>
-                        <input type="text" maxLength={100} />
+                        <input
+                            type="text"
+                            maxLength={100}
+                            value={textBlocks[blockIndex]?.title || ''}
+                            onChange={(e) => handleTextChange(blockIndex, 'title', e.target.value)}
+                        />
                         <span>Напишите заголовок вашего текста. Максимум 100 символов</span>
                         <label htmlFor="">Текст блога</label>
-                        <textarea name="" id="" maxLength={1800}></textarea>
+                        <textarea
+                            maxLength={1800}
+                            value={textBlocks[blockIndex]?.content || ''}
+                            onChange={(e) => handleTextChange(blockIndex, 'content', e.target.value)}
+                        ></textarea>
                         <span>Напишите введение к вашей статье. Максимум 1800 символов</span>
                     </form>
                 );
@@ -166,11 +314,11 @@ function Creator() {
                     <form key={block.id} id={`images-block-blog-${block.id}`} className="images-block-blog">
                         {Array.from({ length: 4 }).map((_, index) => (
                             <div key={index}>
-                                {imageInputs[blockIndex]?.[index] ? (
+                                {imageInputs[blockIndex] && imageInputs[blockIndex][index] ? (
                                     <img
                                         src={imageInputs[blockIndex][index]}
                                         alt="uploaded"
-                                        style={{ width: '537px', height: '415px', objectFit: 'cover', cursor: 'pointer' }}
+                                        style={{ width: '537px', height: '302px', objectFit: 'cover', cursor: 'pointer' }}
                                         onClick={(e) => handleImageReplace(e, index, blockIndex)}
                                     />
                                 ) : (
@@ -192,7 +340,6 @@ function Creator() {
                     <form key={block.id} id={`videos-block-blog-${block.id}`} className="videos-block-blog">
                         <div>
                             {videoInputs[blockIndex] ? (
-                                // Определяем тип файла и рендерим <video> или <img>
                                 (() => {
                                     const isVideo = videoInputs[blockIndex].match(/\.(mp4|mkv)$/i);
                                     if (isVideo) {
@@ -263,7 +410,7 @@ function Creator() {
                             className={selectedBlock === 'videos' ? 'selected' : ''}
                         >
                             <img src="/public/images/block-video.png" alt="image of video" />
-                            <span>Блок видео</span>
+                            <span>Блок видео / фото</span>
                         </div>
                     </div>
                     <button type="button" id='addBlockPost' onClick={addBlock}>Добавить</button>
@@ -275,7 +422,12 @@ function Creator() {
                         <form id='start-blog'>
                             <div className="creator__start-name">
                                 <label htmlFor="">Название статьи</label>
-                                <input type="text" maxLength={255} />
+                                <input
+                                    type="text"
+                                    maxLength={255}
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                />
                                 <span>Укажите название вашей статьи. Максимум 255 символов</span>
                             </div>
                             <div className="creator__categories">
@@ -339,11 +491,7 @@ function Creator() {
                                         onClick={(e) => handleCoverReplace(e)}
                                     />
                                 ) : (
-                                    <button
-                                        type="button"
-                                        id='pushImgBlog'
-                                        onClick={(e) => handleCoverReplace(e)}
-                                    >
+                                    <button type="button" id='pushImgBlog' onClick={(e) => handleCoverReplace(e)}>
                                         <span className='plussChar'>+</span>
                                         <span className='plussDescription'>Загрузить обложку</span>
                                         <p>
@@ -352,16 +500,15 @@ function Creator() {
                                         </p>
                                     </button>
                                 )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={coverInputRef}
-                                    onChange={handleCoverImageUpload}
-                                    style={{ display: 'none' }}
-                                />
+                                <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverImageUpload} style={{ display: 'none' }}/>
                             <div className="creator__description">
                                 <label htmlFor="">Введение статьи</label>
-                                <textarea name="descriptionBlog" id="" maxLength={1400}></textarea>
+                                <textarea
+                                    name="descriptionBlog"
+                                    maxLength={1400}
+                                    value={introduction}
+                                    onChange={(e) => setIntroduction(e.target.value)}
+                                ></textarea>
                                 <span>Напишите введение к вашей статье. Максимум 1400 символов</span>
                             </div>
                         </form>
@@ -370,7 +517,7 @@ function Creator() {
                             <span className='plussChar'>+</span>
                             <span className='plussDescription'>Выберите следующие блоки для вашей статьи</span>
                         </button>
-                        <button type="button" id='pushBlog'>Опубликовать</button>
+                        <button type="button" id='pushBlog' onClick={handlePublish}>Опубликовать</button>
                     </div>
                 </div>
                 <DevNews />
