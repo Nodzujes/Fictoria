@@ -169,7 +169,6 @@ export async function loginUser(req, res) {
         return res.status(400).json({ message: 'Необходимо заполнить все поля и пройти капчу' });
     }
 
-    // Проверяем reCAPTCHA
     const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
     if (!isRecaptchaValid) {
         return res.status(400).json({ message: 'Ошибка проверки капчи. Подтвердите, что вы не робот' });
@@ -202,14 +201,16 @@ export async function loginUser(req, res) {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false,
+            secure: process.env.NODE_ENV === 'production', // Включаем secure в продакшене
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
+        console.log('Login successful for:', email);
         res.status(200).json({
             message: 'Авторизация успешна',
-            token,
-            nickname: user.nickname
+            id: user.id,
+            nickname: user.nickname,
+            avatarUrl: user.avatar_url || '/images/userIcon.png'
         });
     } catch (error) {
         console.error('Ошибка при входе:', error);
@@ -298,10 +299,13 @@ export async function checkAuth(req, res) {
 
 export async function logoutUser(req, res) {
     try {
+        console.log('Logout attempt');
         res.clearCookie('token', {
             httpOnly: true,
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
         });
+        console.log('Cookie cleared');
         res.status(200).json({ message: 'Выход выполнен успешно' });
     } catch (error) {
         console.error('Ошибка при выходе:', error);

@@ -174,7 +174,7 @@ export async function getAllPosts(req, res) {
 export async function getUserPosts(req, res) {
     try {
         const { userId } = req.params;
-        console.log('Получен запрос для userId:', userId); // Логируем userId
+        console.log('Получен запрос для userId:', userId);
         const [posts] = await db.promise().query(`
             SELECT 
                 p.id,
@@ -192,10 +192,88 @@ export async function getUserPosts(req, res) {
             WHERE p.user_id = ?
             GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
         `, [userId]);
-        console.log('Найденные посты:', posts); // Логируем результат
+        console.log('Найденные посты:', posts);
         res.status(200).json(posts);
     } catch (error) {
         console.error('Ошибка при получении постов пользователя:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function toggleLike(req, res) {
+    const token = req.cookies.token;
+    console.log('Toggle like token:', token);
+    if (!token) {
+        return res.status(401).json({ message: 'Не авторизован' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('Toggle like decoded:', decoded);
+        const userId = decoded.id;
+        const { postId } = req.params;
+
+        // Проверяем, существует ли пост
+        const [post] = await db.promise().query('SELECT id FROM posts WHERE id = ?', [postId]);
+        console.log('Post check:', post);
+        if (post.length === 0) {
+            return res.status(404).json({ message: 'Пост не найден' });
+        }
+
+        // Проверяем, есть ли уже лайк
+        const [existingLike] = await db.promise().query(
+            'SELECT * FROM likes WHERE user_id = ? AND post_id = ?',
+            [userId, postId]
+        );
+        console.log('Existing like:', existingLike);
+
+        if (existingLike.length > 0) {
+            // Удаляем лайк
+            await db.promise().query(
+                'DELETE FROM likes WHERE user_id = ? AND post_id = ?',
+                [userId, postId]
+            );
+            res.status(200).json({ message: 'Лайк удален', liked: false });
+        } else {
+            // Добавляем лайк
+            await db.promise().query(
+                'INSERT INTO likes (user_id, post_id) VALUES (?, ?)',
+                [userId, postId]
+            );
+            res.status(200).json({ message: 'Лайк добавлен', liked: true });
+        }
+    } catch (error) {
+        console.error('Ошибка при обработке лайка:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function getLikedPosts(req, res) {
+    try {
+        const { userId } = req.params;
+        console.log('Получен запрос для liked posts userId:', userId);
+        const [posts] = await db.promise().query(`
+            SELECT 
+                p.id,
+                p.user_id,
+                p.title,
+                p.introduction,
+                p.cover_url,
+                u.nickname,
+                u.avatar_url,
+                JSON_ARRAYAGG(c.name) as categories
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            JOIN likes l ON p.id = l.post_id
+            WHERE l.user_id = ?
+            GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
+        `, [userId]);
+        console.log('Найденные лайкнутые посты:', posts);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error('Ошибка при получении лайкнутых постов:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }

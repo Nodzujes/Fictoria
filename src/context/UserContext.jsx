@@ -7,6 +7,7 @@ export const UserContext = createContext({
     login: () => {},
     logout: () => {},
     setUser: () => {},
+    fetchUserProfile: () => {},
 });
 
 export const useUser = () => useContext(UserContext);
@@ -22,9 +23,9 @@ export function UserProvider({ children }) {
                     method: 'GET',
                     credentials: 'include',
                 });
-                console.log('Auth check response:', response.status); // Логируем статус
+                console.log('Auth check response:', response.status);
                 const data = await response.json();
-                console.log('Auth check data:', data); // Логируем данные
+                console.log('Auth check data:', data);
                 if (response.ok && data.isAuthenticated) {
                     setUser({
                         id: data.user.id,
@@ -43,22 +44,25 @@ export function UserProvider({ children }) {
     }, []);
 
     // Функция для входа
-    const login = async (email, password) => {
+    const login = async (email, password, recaptchaToken) => {
         try {
             const response = await fetch('http://localhost:5277/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, recaptchaToken }),
                 credentials: 'include',
             });
             const data = await response.json();
-            console.log('Login response:', data); // Логируем ответ
+            console.log('Login response:', data);
             if (response.ok) {
-                setUser({
+                const newUser = {
                     id: data.id,
                     nickname: data.nickname,
                     avatarUrl: data.avatarUrl,
-                });
+                };
+                setUser(newUser);
+                console.log('User set after login:', newUser);
+                return data;
             } else {
                 throw new Error(data.message || 'Ошибка авторизации');
             }
@@ -71,18 +75,55 @@ export function UserProvider({ children }) {
     // Функция для выхода
     const logout = async () => {
         try {
-            await fetch('http://localhost:5277/api/auth/logout', {
-                methodphysics: 'POST',
+            const response = await fetch('http://localhost:5277/api/auth/logout', {
+                method: 'POST',
                 credentials: 'include',
             });
-            setUser(null);
+            console.log('Logout response:', response.status);
+            if (response.ok) {
+                setUser(null);
+                console.log('User cleared after logout');
+            } else {
+                const data = await response.json();
+                throw new Error(data.message || 'Ошибка выхода');
+            }
         } catch (error) {
             console.error('Ошибка выхода:', error);
+            throw error;
+        }
+    };
+
+    // Функция для получения профиля пользователя
+    const fetchUserProfile = async () => {
+        try {
+            const response = await fetch('http://localhost:5277/api/auth/profile', {
+                method: 'GET',
+                credentials: 'include',
+            });
+            console.log('Fetch user profile response:', response.status);
+            const data = await response.json();
+            console.log('Fetch user profile data:', data);
+            if (response.ok) {
+                setUser({
+                    id: data.id,
+                    nickname: data.nickname,
+                    avatarUrl: data.avatarUrl,
+                    email: data.email,
+                    name: data.name,
+                    status: data.status,
+                    categories: data.categories,
+                });
+            } else {
+                throw new Error(data.message || 'Ошибка получения профиля');
+            }
+        } catch (error) {
+            console.error('Ошибка получения профиля:', error);
+            setUser(null);
         }
     };
 
     return (
-        <UserContext.Provider value={{ user, login, logout, setUser }}>
+        <UserContext.Provider value={{ user, login, logout, setUser, fetchUserProfile }}>
             {children}
         </UserContext.Provider>
     );

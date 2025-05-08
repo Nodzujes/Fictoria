@@ -8,6 +8,7 @@ import SetingsPage from './pages/SetingsPage.jsx';
 import UserLikePage from './pages/UserLikePage.jsx';
 import UserBlogs from './pages/UserBlogs.jsx';
 import Creator from './pages/CreatorPage.jsx';
+import BlogPage from './pages/BlogPage.jsx';
 import MainLayout from './layouts/MainLayout.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import RegLayout from './layouts/RegLayout.jsx';
@@ -27,6 +28,7 @@ function AppRoutes() {
                         <Route path='/likes' element={<UserLikePage />} />
                         <Route path='/userblogs' element={<UserBlogs />} />
                         <Route path='/creator' element={<Creator />} />
+                        <Route path='/blog' element={<BlogPage />} />
                     </Route>
                     <Route element={<AuthLayout />}>
                         <Route path="/login" element={<LoginPage />} />

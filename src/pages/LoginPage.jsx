@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useUser } from '../context/UserContext.jsx';
-import ReCAPTCHA from 'react-google-recaptcha'; // Импортируем библиотеку
+import ReCAPTCHA from 'react-google-recaptcha';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -13,28 +13,35 @@ function Login() {
     const [recaptchaToken, setRecaptchaToken] = useState(null);
     const navigate = useNavigate();
     const { fetchUserProfile } = useUser();
-    const recaptchaRef = useRef(null); // Ссылка на компонент reCAPTCHA
+    const recaptchaRef = useRef(null);
 
     // Callback для успешного прохождения reCAPTCHA
     const onReCaptchaSuccess = useCallback((token) => {
+        console.log('reCAPTCHA token received:', token);
         setRecaptchaToken(token);
     }, []);
 
     // Callback для истечения срока действия токена reCAPTCHA
     const onReCaptchaExpired = useCallback(() => {
+        console.log('reCAPTCHA token expired');
         setRecaptchaToken(null);
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isLoading) return;
+
+        setIsLoading(true);
         setError('');
 
         if (!recaptchaToken) {
             setError('Пожалуйста, подтвердите, что вы не робот');
+            setIsLoading(false);
             return;
         }
 
         try {
+            console.log('Submitting login for:', email);
             const response = await fetch('http://localhost:5277/api/auth/login', {
                 method: 'POST',
                 headers: {
@@ -45,6 +52,7 @@ function Login() {
             });
 
             const data = await response.json();
+            console.log('Login response:', data);
 
             if (!response.ok) {
                 if (data.message === 'Подтвердите email перед входом') {
@@ -55,19 +63,26 @@ function Login() {
             }
 
             await fetchUserProfile();
-            navigate('/');
+            console.log('Navigating to / after successful login');
+            navigate('/', { replace: true });
         } catch (err) {
+            console.error('Login error:', err);
             setError(err.message);
             if (recaptchaRef.current) {
-                recaptchaRef.current.reset(); // Сбрасываем капчу
+                recaptchaRef.current.reset();
             }
             setRecaptchaToken(null);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleVerify = async () => {
+        if (isLoading) return;
+
         setIsLoading(true);
         try {
+            console.log('Verifying code for:', email);
             const response = await fetch('http://localhost:5277/api/auth/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -78,6 +93,7 @@ function Login() {
             });
 
             const data = await response.json();
+            console.log('Verify response:', data);
             if (response.ok) {
                 alert('Аккаунт успешно подтвержден');
                 setShowModal(false);
@@ -86,15 +102,19 @@ function Login() {
                 setError(data.message);
             }
         } catch (error) {
+            console.error('Verification error:', error);
             setError('Ошибка при подтверждении');
-            console.error(error);
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleResendCode = async () => {
+        if (isLoading) return;
+
+        setIsLoading(true);
         try {
+            console.log('Resending verification code for:', email);
             const response = await fetch('http://localhost:5277/api/auth/resend-verification', {
                 method: 'POST',
                 headers: {
@@ -104,19 +124,23 @@ function Login() {
             });
 
             const data = await response.json();
+            console.log('Resend code response:', data);
             if (response.ok) {
                 alert('Новый код подтверждения отправлен на ваш email');
             } else {
                 setError(data.message);
             }
         } catch (error) {
+            console.error('Resend code error:', error);
             setError('Ошибка при отправке кода');
-            console.error(error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     // Сбрасываем капчу при монтировании компонента
     useEffect(() => {
+        console.log('Resetting reCAPTCHA on mount');
         if (recaptchaRef.current) {
             recaptchaRef.current.reset();
         }
@@ -139,6 +163,7 @@ function Login() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={isLoading}
                     />
 
                     <label>Пароль</label>
@@ -149,16 +174,19 @@ function Login() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={isLoading}
                     />
 
                     <ReCAPTCHA
                         ref={recaptchaRef}
-                        sitekey="6LeMTdsqAAAAAIjCEA7JL71tJ9vLOAQJftVBq1od" // Ваш sitekey
+                        sitekey="6LeMTdsqAAAAAIjCEA7JL71tJ9vLOAQJftVBq1od"
                         onChange={onReCaptchaSuccess}
                         onExpired={onReCaptchaExpired}
                     />
 
-                    <button type="submit">Авторизация</button>
+                    <button type="submit" disabled={isLoading}>
+                        {isLoading ? 'Загрузка...' : 'Авторизация'}
+                    </button>
                 </form>
             </div>
             <div className="authChange__block">
@@ -168,7 +196,7 @@ function Login() {
 
             {showModal && (
                 <div className="modal">
-                    <div className='modal-content'>
+                    <div className="modal-content">
                         <h3>Подтверждение Email</h3>
                         <p>Ваш email не подтвержден. Введите код, отправленный на ваш email.</p>
                         <input
@@ -176,11 +204,12 @@ function Login() {
                             placeholder="Введите код подтверждения"
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
+                            disabled={isLoading}
                         />
-                        <button className='btnModalVer' onClick={handleVerify} disabled={isLoading}>
+                        <button className="btnModalVer" onClick={handleVerify} disabled={isLoading}>
                             {isLoading ? 'Подтверждение...' : 'Подтвердить'}
                         </button>
-                        <button className='btnModalVerNew' onClick={handleResendCode}>
+                        <button className="btnModalVerNew" onClick={handleResendCode} disabled={isLoading}>
                             Отправить новый код
                         </button>
                     </div>

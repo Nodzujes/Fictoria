@@ -1,17 +1,55 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import MainBlog from '../components/MainBlog.jsx';
 import { useUser } from '../context/UserContext.jsx';
 
 function UserLikePage() {
     const { user } = useUser();
-    
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        console.log('User in UserLikePage:', user);
+        if (user?.id) {
+            const fetchLikedPosts = async () => {
+                setLoading(true);
+                try {
+                    const response = await fetch(`http://localhost:5277/api/posts/liked/${user.id}`, {
+                        credentials: 'include',
+                    });
+                    console.log('Fetch liked posts response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`Ошибка HTTP: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Fetched liked posts:', data);
+                    setPosts(data);
+                } catch (error) {
+                    console.error('Ошибка при загрузке лайкнутых постов:', error);
+                    setError(error.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchLikedPosts();
+        } else {
+            console.warn('User ID не найден:', user?.id);
+            setError('Пользователь не авторизован или ID отсутствует');
+        }
+    }, [user]);
+
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
     return (
         <>
             <section className="content">
                 <div className="content-blog">
-                <div className="content__header"><Link to="/user"><h1>Профиль</h1></Link></div>
+                    <div className="content__header"><Link to="/user"><h1>Профиль</h1></Link></div>
                     <div className="user__account-block">
-                    <img
+                        <img
                             id='userIconModal'
                             src={user?.avatarUrl || "/images/userIcon.png"}
                             alt="user icon"
@@ -21,7 +59,15 @@ function UserLikePage() {
                             <span className='user-correct'>Пользователь</span>
                         </div>
                     </div>
-                    <MainBlog />
+                    {loading && <p>Загрузка постов...</p>}
+                    {error && <p>Ошибка: {error}</p>}
+                    {!loading && !error && posts.length > 0 ? (
+                        posts.map((post) => (
+                            <MainBlog key={post.id} post={post} />
+                        ))
+                    ) : (
+                        !loading && !error && <p>Вы пока не лайкнули ни одного поста.</p>
+                    )}
                 </div>
                 <aside className="devBlogs">
                     <div className="user-wrapper">
@@ -33,7 +79,7 @@ function UserLikePage() {
                 </aside>
             </section>
         </>
-    )
+    );
 }
 
 export default UserLikePage;

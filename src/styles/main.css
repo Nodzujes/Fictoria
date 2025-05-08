@@ -352,8 +352,7 @@ footer a {
   box-sizing: border-box;
 }
 
-.modal h3,
-p {
+.modal h3, .modal p {
   font-family: "Inter", sans-serif;
   font-size: 15px;
   margin: 10px 0;
@@ -1260,4 +1259,93 @@ p {
   background: none;
   border-radius: 9px;
   border: 2px dashed #5AB9EA;
+}
+
+.chat__comment,
+.comment-block {
+  background-color: #1C2329;
+  box-sizing: border-box;
+}
+
+.comment-block .wrapper,
+.chat__comment .wrapper {
+  padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 27px 0;
+}
+
+.comment-block h2,
+.chat__comment h2 {
+  font-family: "Montserrat", sans-serif;
+  font-size: 20px;
+  color: white;
+}
+
+.chat__comment-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 10px 0;
+}
+
+.chat__comment-comment p {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: white;
+  text-align: justify;
+}
+
+#userIconComment {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 2px;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px 8px;
+}
+
+.comment-header span {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+#yourComment {
+  display: flex;
+  flex-direction: column;
+  gap: 20px 0;
+}
+
+#yourComment textarea {
+  box-sizing: border-box;
+  height: 214px;
+  background-color: #222831;
+  border: 1px solid white;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: white;
+  resize: none;
+}
+
+#yourComment button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #FF8C42;
+  border-radius: 3px;
+  background: none;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  color: #FF8C42;
+  width: 149px;
+  padding: 5px 0;
 }/*# sourceMappingURL=main.css.map */
