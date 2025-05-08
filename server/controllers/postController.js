@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         let uploadDir;
         if (file.fieldname === 'cover') {
-            uploadDir = 'public/uploads/covers'
+            uploadDir = 'public/uploads/covers';
         } else if (file.fieldname.startsWith('images_')) {
             uploadDir = 'public/uploads/images';
         } else if (file.fieldname.startsWith('video_')) {
@@ -46,7 +46,7 @@ const upload = multer({
         }
         cb(new Error('Неверный формат файла'));
     },
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    limits: { fileSize: 10 * 1024 * 1024 }
 }).any();
 
 export async function createPost(req, res) {
@@ -65,10 +65,16 @@ export async function createPost(req, res) {
             const userId = decoded.id;
 
             const { title, introduction, categories, blocks } = req.body;
-            const parsedCategories = JSON.parse(categories);
-            const parsedBlocks = JSON.parse(blocks);
+            let parsedCategories;
+            try {
+                parsedCategories = JSON.parse(categories);
+            } catch (error) {
+                console.error('Ошибка парсинга категорий:', error, 'Полученные категории:', categories);
+                return res.status(400).json({ message: 'Неверный формат категорий' });
+            }
 
-            // Проверяем обязательные поля
+            console.log('Полученные категории:', parsedCategories);
+
             if (!title || !introduction || parsedCategories.length === 0) {
                 return res.status(400).json({ message: 'Заполните все обязательные поля: заголовок, введение и категории' });
             }
@@ -77,18 +83,15 @@ export async function createPost(req, res) {
                 return res.status(400).json({ message: 'Обложка обязательна' });
             }
 
-            // Находим файл обложки
             const coverFile = req.files.find(file => file.fieldname === 'cover');
             const coverUrl = `/uploads/covers/${coverFile.filename}`;
 
-            // Вставляем пост в таблицу `posts`
             const [postResult] = await db.promise().query(
                 'INSERT INTO posts (user_id, title, introduction, cover_url) VALUES (?, ?, ?, ?)',
                 [userId, title, introduction, coverUrl]
             );
             const postId = postResult.insertId;
 
-            // Обрабатываем категории
             for (const category of parsedCategories) {
                 const [categoryResult] = await db.promise().query(
                     'SELECT id FROM categories WHERE name = ?',
@@ -100,10 +103,12 @@ export async function createPost(req, res) {
                         'INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)',
                         [postId, categoryId]
                     );
+                } else {
+                    console.warn(`Категория "${category}" не найдена в базе данных`);
                 }
             }
 
-            // Обрабатываем блоки
+            const parsedBlocks = JSON.parse(blocks);
             for (const block of parsedBlocks) {
                 if (block.type === 'text') {
                     await db.promise().query(
@@ -138,4 +143,59 @@ export async function createPost(req, res) {
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });
         }
     });
+}
+
+export async function getAllPosts(req, res) {
+    try {
+        const [posts] = await db.promise().query(`
+            SELECT 
+                p.id,
+                p.user_id,
+                p.title,
+                p.introduction,
+                p.cover_url,
+                u.nickname,
+                u.avatar_url,
+                JSON_ARRAYAGG(c.name) as categories
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
+        `);
+
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error('Ошибка при получении постов:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function getUserPosts(req, res) {
+    try {
+        const { userId } = req.params;
+        console.log('Получен запрос для userId:', userId); // Логируем userId
+        const [posts] = await db.promise().query(`
+            SELECT 
+                p.id,
+                p.user_id,
+                p.title,
+                p.introduction,
+                p.cover_url,
+                u.nickname,
+                u.avatar_url,
+                JSON_ARRAYAGG(c.name) as categories
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            WHERE p.user_id = ?
+            GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
+        `, [userId]);
+        console.log('Найденные посты:', posts); // Логируем результат
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error('Ошибка при получении постов пользователя:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
 }

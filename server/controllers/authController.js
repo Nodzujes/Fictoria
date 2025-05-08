@@ -265,24 +265,34 @@ export async function resendVerificationCode(req, res) {
 
 export async function checkAuth(req, res) {
     const token = req.cookies.token;
-
     if (!token) {
         return res.status(401).json({ isAuthenticated: false });
     }
 
     try {
-        console.log('Проверка токена:', token);
-        if (!JWT_SECRET) {
-            throw new Error('JWT_SECRET не определен');
-        }
         const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = decoded.id;
+
+        const [user] = await db.promise().query(
+            'SELECT id, nickname, avatar_url FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (user.length === 0) {
+            return res.status(401).json({ isAuthenticated: false });
+        }
+
         res.status(200).json({
             isAuthenticated: true,
-            nickname: decoded.nickname
+            user: {
+                id: user[0].id,
+                nickname: user[0].nickname,
+                avatarUrl: user[0].avatar_url,
+            },
         });
     } catch (error) {
         console.error('Ошибка проверки авторизации:', error);
-        res.status(401).json({ isAuthenticated: false, error: error.message });
+        res.status(401).json({ isAuthenticated: false });
     }
 }
 

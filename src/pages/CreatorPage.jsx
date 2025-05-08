@@ -2,21 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import DevNews from '../components/DevNews.jsx';
 
 function Creator() {
-    const [blocks, setBlocks] = useState([]); // Храним добавленные блоки в состоянии
-    const [selectedBlock, setSelectedBlock] = useState(null); // Храним выбранный блок для добавления
-    const [showModal, setShowModal] = useState(false); // Управляем видимостью модального окна
-    const [coverImage, setCoverImage] = useState(null); // Храним URL обложки
-    const [coverFile, setCoverFile] = useState(null); // Храним файл обложки
-    const [imageInputs, setImageInputs] = useState([]); // Храним URL'ы для отображения блоков изображений
-    const [imageFiles, setImageFiles] = useState([]); // Храним файлы изображений
-    const [videoInputs, setVideoInputs] = useState([]); // Храним URL'ы для отображения блоков видео
-    const [videoFiles, setVideoFiles] = useState([]); // Храним файлы видео
-    const [selectedCategories, setSelectedCategories] = useState([]); // Храним выбранные категории
-    const [title, setTitle] = useState(''); // Храним заголовок статьи
-    const [introduction, setIntroduction] = useState(''); // Храним введение статьи
-    const [textBlocks, setTextBlocks] = useState([]); // Храним данные текстовых блоков
+    const [blocks, setBlocks] = useState([]);
+    const [selectedBlock, setSelectedBlock] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [coverImage, setCoverImage] = useState(null);
+    const [coverFile, setCoverFile] = useState(null);
+    const [imageInputs, setImageInputs] = useState([]);
+    const [imageFiles, setImageFiles] = useState([]);
+    const [videoInputs, setVideoInputs] = useState([]);
+    const [videoFiles, setVideoFiles] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [title, setTitle] = useState('');
+    const [introduction, setIntroduction] = useState('');
+    const [textBlocks, setTextBlocks] = useState([]);
 
-    // Refs для каждого элемента загрузки
     const coverInputRef = useRef(null);
 
     useEffect(() => {
@@ -66,7 +65,6 @@ function Creator() {
 
         setBlocks((prevBlocks) => {
             const updatedBlocks = [...prevBlocks, newBlock];
-            // Синхронизируем состояния
             if (selectedBlock === 'images') {
                 setImageInputs((prev) => [...prev, Array(4).fill(null)]);
                 setImageFiles((prev) => [...prev, Array(4).fill(null)]);
@@ -88,11 +86,9 @@ function Creator() {
         if (file) {
             setImageInputs((prev) => {
                 const newInputs = [...prev];
-                // Проверяем, существует ли newInputs[blockIndex], если нет — инициализируем
                 if (!newInputs[blockIndex]) {
                     newInputs[blockIndex] = Array(4).fill(null);
                 }
-                // Освобождаем старую память, если URL уже существует
                 if (newInputs[blockIndex][index]) {
                     URL.revokeObjectURL(newInputs[blockIndex][index]);
                 }
@@ -103,7 +99,6 @@ function Creator() {
 
             setImageFiles((prev) => {
                 const newFiles = [...prev];
-                // Проверяем, существует ли newFiles[blockIndex], если нет — инициализируем
                 if (!newFiles[blockIndex]) {
                     newFiles[blockIndex] = Array(4).fill(null);
                 }
@@ -258,6 +253,8 @@ function Creator() {
                 }
             });
 
+            console.log('Отправляемые категории:', selectedCategories); // Логирование для отладки
+
             const response = await fetch('http://localhost:5277/api/posts/create', {
                 method: 'POST',
                 body: formData,
@@ -337,7 +334,7 @@ function Creator() {
                 );
             case 'videos':
                 return (
-                    <form key={block.id} id={`videos-block-blog-${block.id}`} className="videos-block-blog">
+                    <form key={block.id} id={`videos-block-blog-${block.id}`} className=" internals-block-blog">
                         <div>
                             {videoInputs[blockIndex] ? (
                                 (() => {
@@ -393,7 +390,7 @@ function Creator() {
                             onClick={() => handleBlockSelect('text')}
                             className={selectedBlock === 'text' ? 'selected' : ''}
                         >
-                            <img src="/public/images/block-text.png" alt="image of text" />
+                            <img src="/images/block-text.png" alt="image of text" />
                             <span>Блок текста</span>
                         </div>
                         <div
@@ -401,7 +398,7 @@ function Creator() {
                             onClick={() => handleBlockSelect('images')}
                             className={selectedBlock === 'images' ? 'selected' : ''}
                         >
-                            <img src="/public/images/block-images.png" alt="image of images" />
+                            <img src="/images/block-images.png" alt="image of images" />
                             <span>Блок изображений</span>
                         </div>
                         <div
@@ -409,7 +406,7 @@ function Creator() {
                             onClick={() => handleBlockSelect('videos')}
                             className={selectedBlock === 'videos' ? 'selected' : ''}
                         >
-                            <img src="/public/images/block-video.png" alt="image of video" />
+                            <img src="/images/block-video.png" alt="image of video" />
                             <span>Блок видео / фото</span>
                         </div>
                     </div>
@@ -434,81 +431,76 @@ function Creator() {
                                 <label htmlFor="">Выберите категории к статье </label>
                                 <div className="creator__categories-set">
                                     <button
-                                        id='films'
+                                        id='Фильмы'
                                         type="button"
-                                        className={`category ${selectedCategories.includes('films') ? 'active-category' : ''}`}
-                                        onClick={() => handleCategorySelect('films')}
+                                        className={`category ${selectedCategories.includes('Фильмы') ? 'active-category' : ''}`}
+                                        onClick={() => handleCategorySelect('Фильмы')}
                                     >
                                         Фильмы
                                     </button>
                                     <button
-                                        id='series'
+                                        id='Сериалы'
                                         type="button"
-                                        className={`category ${selectedCategories.includes('series') ? 'active-category' : ''}`}
-                                        onClick={() => handleCategorySelect('series')}
+                                        className={`category ${selectedCategories.includes('Сериалы') ? 'active-category' : ''}`}
+                                        onClick={() => handleCategorySelect('Сериалы')}
                                     >
                                         Сериалы
                                     </button>
                                     <button
-                                        id='anime'
+                                        id='Аниме'
                                         type="button"
-                                        className={`category ${selectedCategories.includes('anime') ? 'active-category' : ''}`}
-                                        onClick={() => handleCategorySelect('anime')}
+                                        className={`category ${selectedCategories.includes('Аниме') ? 'active-category' : ''}`}
+                                        onClick={() => handleCategorySelect('Аниме')}
                                     >
                                         Аниме
                                     </button>
                                     <button
-                                        id='manga'
+                                        id='Манга'
                                         type="button"
-                                        className={`category ${selectedCategories.includes('manga') ? 'active-category' : ''}`}
-                                        onClick={() => handleCategorySelect('manga')}
+                                        className={`category ${selectedCategories.includes('Манга') ? 'active-category' : ''}`}
+                                        onClick={() => handleCategorySelect('Манга')}
                                     >
                                         Манга
                                     </button>
                                     <button
-                                        id='comics'
+                                        id='Комиксы'
                                         type="button"
-                                        className={`category ${selectedCategories.includes('comics') ? 'active-category' : ''}`}
-                                        onClick={() => handleCategorySelect('comics')}
+                                        className={`category ${selectedCategories.includes('Комиксы') ? 'active-category' : ''}`}
+                                        onClick={() => handleCategorySelect('Комиксы')}
                                     >
                                         Комиксы
                                     </button>
                                     <button
-                                        id='another'
+                                        id='Другое'
                                         type="button"
-                                        className={`category ${selectedCategories.includes('another') ? 'active-category' : ''}`}
-                                        onClick={() => handleCategorySelect('another')}
+                                        className={`category ${selectedCategories.includes('Другое') ? 'active-category' : ''}`}
+                                        onClick={() => handleCategorySelect('Другое')}
                                     >
                                         Другое
                                     </button>
                                 </div>
                             </div>
-                                {coverImage ? (
-                                    <img
-                                        src={coverImage}
-                                        alt="cover"
-                                        style={{ width: '100%', height: '415px', objectFit: 'cover', cursor: 'pointer' }}
-                                        onClick={(e) => handleCoverReplace(e)}
-                                    />
-                                ) : (
-                                    <button type="button" id='pushImgBlog' onClick={(e) => handleCoverReplace(e)}>
-                                        <span className='plussChar'>+</span>
-                                        <span className='plussDescription'>Загрузить обложку</span>
-                                        <p>
-                                            Рекомендуемое разрешение 1094 х 415.<br />
-                                            Формат — JPG, GIF, PNG.
-                                        </p>
-                                    </button>
-                                )}
-                                <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverImageUpload} style={{ display: 'none' }}/>
+                            {coverImage ? (
+                                <img
+                                    src={coverImage}
+                                    alt="cover"
+                                    style={{ width: '100%', height: '415px', objectFit: 'cover', cursor: 'pointer' }}
+                                    onClick={(e) => handleCoverReplace(e)}
+                                />
+                            ) : (
+                                <button type="button" id='pushImgBlog' onClick={(e) => handleCoverReplace(e)}>
+                                    <span className='plussChar'>+</span>
+                                    <span className='plussDescription'>Загрузить обложку</span>
+                                    <p>
+                                        Рекомендуемое разрешение 1094 х 415.<br />
+                                        Формат — JPG, GIF, PNG.
+                                    </p>
+                                </button>
+                            )}
+                            <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverImageUpload} style={{ display: 'none' }}/>
                             <div className="creator__description">
                                 <label htmlFor="">Введение статьи</label>
-                                <textarea
-                                    name="descriptionBlog"
-                                    maxLength={1400}
-                                    value={introduction}
-                                    onChange={(e) => setIntroduction(e.target.value)}
-                                ></textarea>
+                                <textarea name="descriptionBlog" maxLength={1400} value={introduction} onChange={(e) => setIntroduction(e.target.value)}></textarea>
                                 <span>Напишите введение к вашей статье. Максимум 1400 символов</span>
                             </div>
                         </form>
