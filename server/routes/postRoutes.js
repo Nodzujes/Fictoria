@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPost, getAllPosts, getUserPosts, toggleLike, getLikedPosts } from '../controllers/postController.js';
+import { createPost, getAllPosts, getUserPosts, toggleLike, getLikedPosts, getPostById, getPostBlocks } from '../controllers/postController.js';
 
 const router = express.Router();
 
@@ -8,5 +8,7 @@ router.get('/all', getAllPosts);
 router.get('/user/:userId', getUserPosts);
 router.post('/like/:postId', toggleLike);
 router.get('/liked/:userId', getLikedPosts);
+router.get('/:id', getPostById);
+router.get('/blocks/:id', getPostBlocks);
 
 export default router;

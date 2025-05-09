@@ -118,7 +118,7 @@ export async function createPost(req, res) {
                 } else if (block.type === 'images') {
                     const mediaUrls = Array(4).fill(null);
                     block.mediaFiles.forEach((_, fileIndex) => {
-                        const file = req.files.find(f => f.fieldname === `images_${block.order-1}_${fileIndex}`);
+                        const file = req.files.find(f => f.fieldname === `images_${block.order - 1}_${fileIndex}`);
                         if (file) {
                             mediaUrls[fileIndex] = `/uploads/images/${file.filename}`;
                         }
@@ -128,7 +128,7 @@ export async function createPost(req, res) {
                         [postId, block.type, block.order, JSON.stringify(mediaUrls)]
                     );
                 } else if (block.type === 'videos') {
-                    const file = req.files.find(f => f.fieldname === `video_${block.order-1}`);
+                    const file = req.files.find(f => f.fieldname === `video_${block.order - 1}`);
                     const mediaUrl = file ? `/uploads/videos/${file.filename}` : null;
                     await db.promise().query(
                         'INSERT INTO post_blocks (post_id, type, `order`, media_urls) VALUES (?, ?, ?, ?)',
@@ -274,6 +274,59 @@ export async function getLikedPosts(req, res) {
         res.status(200).json(posts);
     } catch (error) {
         console.error('Ошибка при получении лайкнутых постов:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function getPostById(req, res) {
+    try {
+        const { id } = req.params;
+        const [posts] = await db.promise().query(`
+      SELECT 
+        p.id,
+        p.user_id,
+        p.title,
+        p.introduction,
+        p.cover_url,
+        u.nickname,
+        u.avatar_url,
+        JSON_ARRAYAGG(c.name) as categories
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      LEFT JOIN post_categories pc ON p.id = pc.post_id
+      LEFT JOIN categories c ON pc.category_id = c.id
+      WHERE p.id = ?
+      GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
+    `, [id]);
+        if (posts.length === 0) {
+            return res.status(404).json({ message: 'Пост не найден' });
+        }
+        res.status(200).json(posts[0]);
+    } catch (error) {
+        console.error('Ошибка при получении поста:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function getPostBlocks(req, res) {
+    try {
+        const { id } = req.params;
+        const [blocks] = await db.promise().query(`
+      SELECT 
+        id,
+        post_id,
+        type,
+        \`order\`,
+        title,
+        content,
+        media_urls
+      FROM post_blocks
+      WHERE post_id = ?
+      ORDER BY \`order\`
+    `, [id]);
+        res.status(200).json(blocks);
+    } catch (error) {
+        console.error('Ошибка при получении блоков поста:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }

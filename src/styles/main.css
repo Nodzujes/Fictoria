@@ -527,10 +527,11 @@ footer a {
 
 .meta__blog-content p {
   font-family: "Inter", sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 400;
   color: #E3E3E3;
   text-align: justify;
+  line-height: 25px;
 }
 
 .meta__read-all {
@@ -1348,4 +1349,23 @@ footer a {
   color: #FF8C42;
   width: 149px;
   padding: 5px 0;
+}
+
+.content-blog-item h3 {
+  font-family: "Montserrat", sans-serif;
+  font-size: 21px;
+  font-weight: 600;
+  color: #FF8C42;
+}
+
+.meta__media-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 20px;
+}
+
+.meta__block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px 0;
 }/*# sourceMappingURL=main.css.map */

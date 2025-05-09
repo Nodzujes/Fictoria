@@ -1,96 +1,156 @@
-// import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import DevNews from '../components/DevNews.jsx';
 
 function BlogPage() {
-    // const [liked, setLiked] = useState(false);
+    const { id } = useParams(); // Извлекаем ID поста из URL
+    const [post, setPost] = useState(null);
+    const [blocks, setBlocks] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // const likeClick = () => {
-    //     setLiked(!liked);
-    // };
+    // Запрашиваем пост и его блоки при монтировании компонента
+    useEffect(() => {
+        const fetchPost = async () => {
+            try {
+                // Запрашиваем данные поста
+                const postResponse = await fetch(`/api/posts/${id}`);
+                if (!postResponse.ok) {
+                    throw new Error(`Ошибка при загрузке поста: ${postResponse.statusText}`);
+                }
+                const postData = await postResponse.json();
+                if (postData.message) {
+                    throw new Error(postData.message);
+                }
+
+                // Запрашиваем блоки поста
+                const blocksResponse = await fetch(`/api/posts/blocks/${id}`);
+                if (!blocksResponse.ok) {
+                    throw new Error(`Ошибка при загрузке блоков: ${blocksResponse.statusText}`);
+                }
+                const blocksData = await blocksResponse.json();
+
+                setPost(postData);
+                setBlocks(blocksData);
+                setIsLoading(false);
+            } catch (error) {
+                console.error('Ошибка при загрузке поста:', error);
+                setError(error.message);
+                setIsLoading(false);
+            }
+        };
+        fetchPost();
+    }, [id]);
+
+    if (isLoading) {
+        return <div>Загрузка...</div>;
+    }
+
+    if (error) {
+        return <div>Ошибка: {error}</div>;
+    }
+
+    if (!post) {
+        return <div>Пост не найден</div>;
+    }
+
+    // Парсим категории из данных поста
+    const categories = Array.isArray(post.categories)
+        ? post.categories
+        : typeof post.categories === 'string'
+            ? JSON.parse(post.categories)
+            : [];
+
+    // Отображаем медиа-блоки (изображения или видео)
+    const renderMediaBlock = (block) => {
+        let mediaUrls = block.media_urls;
+        // Если media_urls — строка, преобразуем её в массив
+        if (typeof mediaUrls === 'string') {
+            mediaUrls = mediaUrls.startsWith('[') ? JSON.parse(mediaUrls) : [mediaUrls];
+        } else if (!Array.isArray(mediaUrls)) {
+            mediaUrls = [];
+        }
+        return (
+            <div className="meta__media-block">
+                {mediaUrls.map((url, index) => (
+                    block.type === 'images' ? (
+                        <img key={index} src={url} alt={`media-${index}`} className="media-image" />
+                    ) : (
+                        <video key={index} src={url} controls className="media-video" />
+                    )
+                ))}
+            </div>
+        );
+    };
+
     return (
         <>
             <section className="content">
                 <div className="content-blog">
-                    {/* <article className="content-blog-item">
+                    <article className="content-blog-item">
                         <div className="meta__user">
-                            <img id="userIcon" src="/images/userIcon.png" alt="иконка пользователя" />
-                            <span id="userName">Keanu_Reeves</span>
+                            <img
+                                id="userIcon"
+                                src={post.avatar_url || "/images/userIcon.png"}
+                                alt="иконка пользователя"
+                            />
+                            <span id="userName">{post.nickname || "Неизвестный пользователь"}</span>
                         </div>
                         <div className="meta__blog-content">
                             <div className="meta__blog-name">
-                                <h2 id="nameBlog">Название статьи</h2>
+                                <h2 id="nameBlog">{post.title || "Название статьи"}</h2>
                                 <div className="meta__blog-name-category">
-                                    <div id="id_category">Фильмы</div>
-                                    <div id="id_category">Сериалы</div>
+                                    {categories.map((category, index) => (
+                                        <div key={index} id="id_category">{category}</div>
+                                    ))}
                                 </div>
                             </div>
-                            <img id="coverBlog" src="/images/coverBlog.png" alt="оьложка статьи" />
+                            <img
+                                id="coverBlog"
+                                src={post.cover_url || "/images/coverBlog.png"}
+                                alt="обложка статьи"
+                            />
                             <p id="descriptionBlog">
-                                Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                                Lorem Ipsum has been the industry&apos;s standard dummy text ever since the 1500s,
-                                when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-                                It has survived not only five centuries, but also the leap into electronic typesetting,
-                                remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset
-                                sheets containing Lorem Ipsum passages, and more recently with desktop publishing software
-                                like Aldus PageMaker including versions of Lorem Ipsum.
+                                {post.introduction ||
+                                    "Lorem Ipsum — это просто текст-заглушка для печати и набора текста..."}
                             </p>
-                            <p id="textBlog">
-                                Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                                Lorem Ipsum has been the industry&apos;s standard dummy text ever since the 1500s,
-                                when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-                            </p>
-                            <div className="meta__read-all">
-                                <a id="allBlog" href="#">Читать дальше</a>
-                            </div>
-                            <div className="meta__blog-content-icons">
-                                <button id="like" onClick={likeClick}>
-                                    <img src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"} alt="иконка лайка" />
-                                </button>
-                                <a href="" id="comment"><img src="/icons/chat.png" alt="иконка комментариев" /></a>
-                            </div>
+                            {/* Отображаем все блоки */}
+                            {blocks.sort((a, b) => a.order - b.order).map((block, index) => (
+                                <div key={index} className="meta__block">
+                                    {block.type === 'text' && (
+                                        <>
+                                            {block.title && <h3>{block.title}</h3>}
+                                            <p>{block.content}</p>
+                                        </>
+                                    )}
+                                    {(block.type === 'images' || block.type === 'videos') && renderMediaBlock(block)}
+                                </div>
+                            ))}
                         </div>
-                    </article> */}
+                    </article>
                     <div className="chat__comment">
                         <div className="wrapper">
                             <h2>Комментарии</h2>
                             <div className="chat__comment-comment">
                                 <div className="comment-header">
-                                    <img id="userIconComment" src="/public/images/userIcon.png" alt="Иконка пользователя" />
+                                    <img id="userIconComment" src="/images/userIcon.png" alt="Иконка пользователя" />
                                     <span className="user-nickName">Like_Films</span>
                                 </div>
-                                <p className="cooment-user">
+                                <p className="comment-user">
                                     Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
                                     doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-                                    veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim
-                                    ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia
-                                    consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque
-                                    porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur,
-                                    adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et
-                                    dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis
-                                    nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid
-                                    ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea
-                                    voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem
-                                    eum fugiat quo voluptas nulla pariatur?
+                                    veritatis et quasi architecto beatae vitae dicta sunt explicabo...
                                 </p>
                             </div>
                             <div className="chat__comment-comment">
                                 <div className="comment-header">
-                                    <img id="userIconComment" src="/public/images/userIcon.png" alt="Иконка пользователя" />
+                                    <img id="userIconComment" src="/images/userIcon.png" alt="Иконка пользователя" />
                                     <span className="user-nickName">Like_Films</span>
                                 </div>
-                                <p className="cooment-user">
+                                <p className="comment-user">
                                     Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
                                     doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-                                    veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim
-                                    ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia
-                                    consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque
-                                    porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur,
-                                    adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et
-                                    dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis
-                                    nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid
-                                    ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea
-                                    voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem
-                                    eum fugiat quo voluptas nulla pariatur?
+                                    veritatis et quasi architecto beatae vitae dicta sunt explicabo...
                                 </p>
                             </div>
                         </div>
@@ -108,7 +168,7 @@ function BlogPage() {
                 <DevNews />
             </section>
         </>
-    )
+    );
 }
 
 export default BlogPage;

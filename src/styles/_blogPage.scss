@@ -85,3 +85,22 @@
     width: 149px;
     padding: 5px 0;
 }
+
+.content-blog-item h3{
+    font-family: 'Montserrat', sans-serif;
+    font-size: 21px;
+    font-weight: 600;
+    color: $orange;
+}
+
+.meta__media-block{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 20px;
+}
+
+.meta__block{
+    display: flex;
+    flex-direction: column;
+    gap: 20px 0;
+}

@@ -59,19 +59,19 @@ function MainBlog({ post }) {
     }
   };
 
-  const categories = Array.isArray(post.categories) 
-    ? post.categories 
-    : typeof post.categories === 'string' 
-      ? JSON.parse(post.categories) 
+  const categories = Array.isArray(post.categories)
+    ? post.categories
+    : typeof post.categories === 'string'
+      ? JSON.parse(post.categories)
       : [];
 
   return (
     <article className="content-blog-item">
       <div className="meta__user">
-        <img 
-          id="userIcon" 
-          src={post.avatar_url || "/images/userIcon.png"} 
-          alt="иконка пользователя" 
+        <img
+          id="userIcon"
+          src={post.avatar_url || "/images/userIcon.png"}
+          alt="иконка пользователя"
         />
         <span id="userName">{post.nickname || "Неизвестный пользователь"}</span>
       </div>
@@ -84,23 +84,23 @@ function MainBlog({ post }) {
             ))}
           </div>
         </div>
-        <img 
-          id="coverBlog" 
-          src={post.cover_url || "/images/coverBlog.png"} 
-          alt="обложка статьи" 
+        <img
+          id="coverBlog"
+          src={post.cover_url || "/images/coverBlog.png"}
+          alt="обложка статьи"
         />
         <p id="descriptionBlog">
-          {post.introduction || 
-           "Lorem Ipsum — это просто текст-заглушка для печати и набора текста..."}
+          {post.introduction ||
+            "Lorem Ipsum — это просто текст-заглушка для печати и набора текста..."}
         </p>
         <div className="meta__read-all">
-          <a id="allBlog" href={`/post/${post.id}`}>Читать дальше</a>
+          <a id="allBlog" href={`/post/${post.id}`}>Читать дальше</a> {/* Обновленная ссылка */}
         </div>
         <div className="meta__blog-content-icons">
           <button id="like" onClick={likeClick} disabled={isLoading}>
-            <img 
-              src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"} 
-              alt="иконка лайка" 
+            <img
+              src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"}
+              alt="иконка лайка"
             />
           </button>
           <a href={`/post/${post.id}#comments`} id="comment">

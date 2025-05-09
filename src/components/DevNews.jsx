@@ -6,7 +6,7 @@ function DevNews(){
           <article id="devBlog 1">
             <div className="top">
               <img src="/images/logo-blogs.png" alt="" />
-              <h3>Название статьи</h3>
+              <h3>Мы начали работу!</h3>
             </div>
             <p>
               Lorem Ipsum is simply dummy text of the printing and typesetting industry.
