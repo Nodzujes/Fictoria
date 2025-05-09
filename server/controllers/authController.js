@@ -88,7 +88,7 @@ export async function regUser(req, res) {
 
         const hashedPassword = await hashPassword(password);
         const verificationCode = generateVerificationCode();
-        
+
         const [result] = await db.promise().query(
             'INSERT INTO users (email, nickname, password) VALUES (?, ?, ?)',
             [email, nickname, hashedPassword]
@@ -387,33 +387,32 @@ export async function getUserProfile(req, res) {
         const decoded = jwt.verify(token, JWT_SECRET);
         const userId = decoded.id;
 
-        
-    // Получение аватара пользователя из БД
-    const [user] = await db.promise().query(
-        'SELECT email, nickname, name, status, avatar_url FROM users WHERE id = ?', [userId]
-    );
+        const [user] = await db.promise().query(
+            'SELECT id, email, nickname, name, status, avatar_url FROM users WHERE id = ?',
+            [userId]
+        );
 
-    if (user.length === 0) {
-        return res.status(404).json({ message: 'Пользователь не найден' });
-    }
+        if (user.length === 0) {
+            return res.status(404).json({ message: 'Пользователь не найден' });
+        }
 
-    // Получаем категории пользователя
-    const [categories] = await db.promise().query(
-        'SELECT category FROM user_categories WHERE user_id = ?',
-        [userId]
-    );
+        const [categories] = await db.promise().query(
+            'SELECT category FROM user_categories WHERE user_id = ?',
+            [userId]
+        );
 
-    const userData = {
-        email: user[0].email,
-        nickname: user[0].nickname,
-        name: user[0].name || '',
-        status: user[0].status || '',
-        avatarUrl: user[0].avatar_url,
-        categories: categories.map(c => c.category)
-    };
+        const userData = {
+            id: user[0].id,
+            email: user[0].email,
+            nickname: user[0].nickname,
+            name: user[0].name || '',
+            status: user[0].status || '',
+            avatarUrl: user[0].avatar_url || '/images/userIcon.png',
+            categories: categories.map(c => c.category)
+        };
 
-    res.status(200).json(userData);
-
+        console.log('User profile fetched:', userData);
+        res.status(200).json(userData);
     } catch (error) {
         console.error('Ошибка при получении профиля:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });

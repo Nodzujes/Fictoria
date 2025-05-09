@@ -4,15 +4,32 @@ import { useUser } from '../context/UserContext.jsx';
 function SetingsPage() {
     const fileInputRef = useRef(null);
     const [avatar, setAvatar] = useState("/images/userIcon.png");
+    const [previewAvatar, setPreviewAvatar] = useState(null);
     const [name, setName] = useState("");
     const [status, setStatus] = useState("");
     const [selectedCategory, setSelectedCategory] = useState([]);
+    const [error, setError] = useState(null);
     const maxFileSize = 1 * 1024 * 1024; // 1MB в байтах
     const { user, fetchUserProfile, isLoading } = useUser();
 
     // Загрузка данных пользователя при монтировании
     useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                console.log('Fetching user profile...');
+                await fetchUserProfile();
+            } catch (err) {
+                console.error('Error fetching profile:', err);
+                setError('Ошибка загрузки профиля');
+            }
+        };
+        loadProfile();
+    }, []); // Пустой массив зависимостей для вызова только при монтировании
+
+    // Синхронизация данных с user
+    useEffect(() => {
         if (user) {
+            console.log('User data loaded:', user);
             setAvatar(user.avatarUrl || "/images/userIcon.png");
             setName(user.name || "");
             setStatus(user.status || "");
@@ -24,7 +41,7 @@ function SetingsPage() {
         fileInputRef.current.click();
     };
 
-    const changeFile = () => {
+    const changeFile = (event) => {
         const file = event.target.files[0];
         if (file) {
             if (!["image/png", "image/jpeg", "image/gif"].includes(file.type)) {
@@ -33,15 +50,22 @@ function SetingsPage() {
             }
 
             if (file.size > maxFileSize) {
-                alert("Размер файла больше допустимового");
+                alert("Размер файла больше допустимого");
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = (e) => {
-                setAvatar(e.target.result); // Устанавливаем новое изображение
+                setPreviewAvatar(e.target.result); // Устанавливаем предварительный просмотр
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const cancelAvatar = () => {
+        setPreviewAvatar(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Очищаем input
         }
     };
 
@@ -56,6 +80,7 @@ function SetingsPage() {
     };
 
     const saveSettings = async () => {
+        setError(null);
         const formData = new FormData();
 
         // Добавляем только измененные поля
@@ -79,25 +104,31 @@ function SetingsPage() {
         }
 
         try {
+            console.log('Saving settings:', [...formData.entries()]);
             const response = await fetch("http://localhost:5277/api/auth/update-profile", {
                 method: "POST",
                 credentials: "include",
                 body: formData,
             });
             const data = await response.json();
+            console.log('Save settings response:', data);
             if (response.ok) {
                 alert("Настройки сохранены!");
                 if (data.avatarUrl) {
                     setAvatar(data.avatarUrl);
+                    setPreviewAvatar(null); // Очищаем предварительный просмотр
+                    if (fileInputRef.current) {
+                        fileInputRef.current.value = ""; // Очищаем input
+                    }
                 }
                 // Обновляем данные пользователя
                 await fetchUserProfile();
             } else {
-                alert(data.message || "Ошибка при сохранении настроек");
+                throw new Error(data.message || "Ошибка при сохранении настроек");
             }
         } catch (error) {
             console.error("Ошибка при сохранении настроек:", error);
-            alert("Ошибка сервера");
+            setError("Ошибка сервера");
         }
     };
 
@@ -113,7 +144,7 @@ function SetingsPage() {
             <div className="setings__block">
                 <div className="setings__grid-container">
                     <div className="userRealName-input">
-                        <h2>Настоящие имя</h2>
+                        <h2>Настоящее имя</h2>
                         <input
                             type="text"
                             maxLength={40}
@@ -123,22 +154,25 @@ function SetingsPage() {
                         <span>Укажите ваши имя и фамилию. Максимум 40 символов</span>
                     </div>
                     <div className="userStatus-input">
-                        <h2>Выбирете статус</h2>
+                        <h2>Выберите статус</h2>
                         <input
                             type="text"
                             maxLength={30}
                             value={status}
                             onChange={(e) => setStatus(e.target.value)}
                         />
-                        <span>Укажите ваши статус. Максимум 30 символов</span>
+                        <span>Укажите ваш статус. Максимум 30 символов</span>
                     </div>
                     <div className="userChooseIcon-block">
                         <h2>Аватар</h2>
-                        <img src={avatar} alt="user icon" />
+                        <img src={previewAvatar || avatar} alt="user icon" />
                         <span>Формат: jpg, gif, png.</span>
                         <span>Максимальный размер файла: 1Mb.</span>
                         <span>Рекомендуется: до 300x300px.</span>
                         <button onClick={changeFileClick}>Загрузить</button>
+                        {previewAvatar && (
+                            <button onClick={cancelAvatar}>Отменить</button>
+                        )}
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -149,7 +183,7 @@ function SetingsPage() {
                     </div>
                 </div>
                 <div className="setings__block__themes">
-                    <div className="setings__block__themes-header">Что вас интерисует</div>
+                    <div className="setings__block__themes-header">Что вас интересует</div>
                     <div className="setings__block__themes-choose">
                         {categories.map((category) => (
                             <button
@@ -163,6 +197,7 @@ function SetingsPage() {
                     </div>
                     <button id="saveSetings" onClick={saveSettings}>Сохранить изменения</button>
                 </div>
+                {error && <div className="error">{error}</div>}
             </div>
         </>
     );
