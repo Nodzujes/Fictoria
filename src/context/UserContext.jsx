@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 export const UserContext = createContext({
     user: null,
+    loading: true, // Добавляем состояние загрузки
     login: () => {},
     logout: () => {},
     setUser: () => {},
@@ -14,6 +15,7 @@ export const useUser = () => useContext(UserContext);
 
 export function UserProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // Инициализируем как true
 
     // Проверяем статус авторизации при загрузке приложения
     useEffect(() => {
@@ -38,6 +40,8 @@ export function UserProvider({ children }) {
             } catch (error) {
                 console.error('Ошибка проверки авторизации:', error);
                 setUser(null);
+            } finally {
+                setLoading(false); // Устанавливаем loading в false после завершения
             }
         };
         checkAuth();
@@ -123,7 +127,7 @@ export function UserProvider({ children }) {
     };
 
     return (
-        <UserContext.Provider value={{ user, login, logout, setUser, fetchUserProfile }}>
+        <UserContext.Provider value={{ user, loading, login, logout, setUser, fetchUserProfile }}>
             {children}
         </UserContext.Provider>
     );

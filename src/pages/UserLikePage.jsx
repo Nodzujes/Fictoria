@@ -4,16 +4,14 @@ import MainBlog from '../components/MainBlog.jsx';
 import { useUser } from '../context/UserContext.jsx';
 
 function UserLikePage() {
-    const { user } = useUser();
+    const { user, loading } = useUser(); // Добавляем loading
     const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         console.log('User in UserLikePage:', user);
         if (user?.id) {
             const fetchLikedPosts = async () => {
-                setLoading(true);
                 try {
                     const response = await fetch(`http://localhost:5277/api/posts/liked/${user.id}`, {
                         credentials: 'include',
@@ -28,16 +26,18 @@ function UserLikePage() {
                 } catch (error) {
                     console.error('Ошибка при загрузке лайкнутых постов:', error);
                     setError(error.message);
-                } finally {
-                    setLoading(false);
                 }
             };
             fetchLikedPosts();
-        } else {
+        } else if (!loading) { // Проверяем только если загрузка завершена
             console.warn('User ID не найден:', user?.id);
             setError('Пользователь не авторизован или ID отсутствует');
         }
-    }, [user]);
+    }, [user, loading]);
+
+    if (loading) {
+        return <div className="no__posts"><p>Загрузка...</p></div>; // Показываем загрузку, пока идет проверка
+    }
 
     if (!user) {
         return <Navigate to="/login" replace />;
@@ -59,14 +59,13 @@ function UserLikePage() {
                             <span className='user-correct'>Пользователь</span>
                         </div>
                     </div>
-                    {loading && <div className="no__posts"><p>Загрузка постов...</p></div>}
                     {error && <p>Ошибка: {error}</p>}
-                    {!loading && !error && posts.length > 0 ? (
+                    {posts.length > 0 ? (
                         posts.map((post) => (
                             <MainBlog key={post.id} post={post} />
                         ))
                     ) : (
-                        !loading && !error && <div className="no__posts"><p>Вы пока не лайкнули ни одного поста.</p></div>
+                        !error && <div className="no__posts"><p>Вы пока не лайкнули ни одного поста.</p></div>
                     )}
                 </div>
                 <aside className="devBlogs">
