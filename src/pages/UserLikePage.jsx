@@ -59,14 +59,14 @@ function UserLikePage() {
                             <span className='user-correct'>Пользователь</span>
                         </div>
                     </div>
-                    {loading && <p>Загрузка постов...</p>}
+                    {loading && <div className="no__posts"><p>Загрузка постов...</p></div>}
                     {error && <p>Ошибка: {error}</p>}
                     {!loading && !error && posts.length > 0 ? (
                         posts.map((post) => (
                             <MainBlog key={post.id} post={post} />
                         ))
                     ) : (
-                        !loading && !error && <p>Вы пока не лайкнули ни одного поста.</p>
+                        !loading && !error && <div className="no__posts"><p>Вы пока не лайкнули ни одного поста.</p></div>
                     )}
                 </div>
                 <aside className="devBlogs">

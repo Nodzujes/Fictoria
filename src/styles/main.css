@@ -816,6 +816,14 @@ footer a {
   border-bottom: 1px solid #5AB9EA;
 }
 
+.no__posts {
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding-bottom: 477px;
+}
+
 .setings__header {
   box-sizing: border-box;
   width: 1520px;

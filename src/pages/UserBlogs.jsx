@@ -59,14 +59,14 @@ function UserBlogs() {
                             <span className='user-correct'>Пользователь</span>
                         </div>
                     </div>
-                    {loading && <p>Загрузка постов...</p>}
+                    {loading && <div className="no__posts"><p>Загрузка постов...</p></div>}
                     {error && <p>Ошибка: {error}</p>}
                     {!loading && !error && posts.length > 0 ? (
                         posts.map((post) => (
                             <MainBlog key={post.id} post={post} />
                         ))
                     ) : (
-                        !loading && !error && <p>У вас пока нет созданных постов.</p>
+                        !loading && !error && <div className="no__posts"><p>У вас пока нет созданных постов.</p></div>
                     )}
                 </div>
                 <aside className="devBlogs">
