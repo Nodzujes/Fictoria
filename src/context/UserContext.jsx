@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 export const UserContext = createContext({
     user: null,
-    loading: true, // Добавляем состояние загрузки
+    loading: true,
     login: () => {},
     logout: () => {},
     setUser: () => {},
@@ -15,9 +15,9 @@ export const useUser = () => useContext(UserContext);
 
 export function UserProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Инициализируем как true
+    const [loading, setLoading] = useState(true);
 
-    // Проверяем статус авторизации при загрузке приложения
+    // Проверяем статус авторизации и загружаем профиль при загрузке приложения
     useEffect(() => {
         const checkAuth = async () => {
             try {
@@ -34,6 +34,8 @@ export function UserProvider({ children }) {
                         nickname: data.user.nickname,
                         avatarUrl: data.user.avatarUrl,
                     });
+                    // Загружаем полный профиль
+                    await fetchUserProfile();
                 } else {
                     setUser(null);
                 }
@@ -41,7 +43,7 @@ export function UserProvider({ children }) {
                 console.error('Ошибка проверки авторизации:', error);
                 setUser(null);
             } finally {
-                setLoading(false); // Устанавливаем loading в false после завершения
+                setLoading(false);
             }
         };
         checkAuth();
@@ -65,7 +67,8 @@ export function UserProvider({ children }) {
                     avatarUrl: data.avatarUrl,
                 };
                 setUser(newUser);
-                console.log('User set after login:', newUser);
+                // Загружаем полный профиль после входа
+                await fetchUserProfile();
                 return data;
             } else {
                 throw new Error(data.message || 'Ошибка авторизации');
