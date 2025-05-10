@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import ModalUser from '../components/ModalUser.jsx';
 import { useUser } from '../context/UserContext.jsx';
@@ -34,15 +34,15 @@ function Header() {
                 </div>
                 <ul className='mainHeader__nav'>
                     {user && (
-                        <li><Link to="/category/Моя лента">Моя лента</Link></li>
+                        <li><NavLink to="/category/Моя лента">Моя лента</NavLink></li>
                     )}
-                    <li><Link to="/">Вся лента</Link></li>
-                    <li><Link to="/category/Фильмы">Фильмы</Link></li>
-                    <li><Link to="/category/Сериалы">Сериалы</Link></li>
-                    <li><Link to="/category/Комиксы">Комиксы</Link></li>
-                    <li><Link to="/category/Аниме">Аниме</Link></li>
-                    <li><Link to="/category/Манга">Манга</Link></li>
-                    <li><Link to="/category/Другое">Другое</Link></li>
+                    <li><NavLink to="/">Вся лента</NavLink></li>
+                    <li><NavLink to="/category/Фильмы">Фильмы</NavLink></li>
+                    <li><NavLink to="/category/Сериалы">Сериалы</NavLink></li>
+                    <li><NavLink to="/category/Комиксы">Комиксы</NavLink></li>
+                    <li><NavLink to="/category/Аниме">Аниме</NavLink></li>
+                    <li><NavLink to="/category/Манга">Манга</NavLink></li>
+                    <li><NavLink to="/category/Другое">Другое</NavLink></li>
                 </ul>
                 <div className="mainHeader__buttons">
                     <Link to="/creator"><img src="/images/button_edit.png" alt="Button to edit" /></Link>

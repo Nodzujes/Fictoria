@@ -54,6 +54,10 @@ header .wrapper {
   list-style: none;
 }
 
+.mainHeader__nav a.active {
+  color: #5AB9EA;
+}
+
 .mainHeader__buttons {
   display: flex;
   gap: 0 13px;
