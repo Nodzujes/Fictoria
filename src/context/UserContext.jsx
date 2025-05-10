@@ -17,33 +17,45 @@ export function UserProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Проверяем статус авторизации и загружаем профиль при загрузке приложения
+    // Проверяем статус авторизации при загрузке приложения
     useEffect(() => {
-        const checkAuth = async () => {
+        const checkAuth = async (retryCount = 0, maxRetries = 2) => {
             try {
-                const response = await fetch('http://localhost:5277/api/auth/check', {
+                console.log('Checking auth, attempt:', retryCount + 1);
+                const response = await fetch('http://localhost:5277/api/auth/me', {
                     method: 'GET',
                     credentials: 'include',
                 });
-                console.log('Auth check response:', response.status);
+                console.log('Auth check response:', response.status, 'ok:', response.ok);
                 const data = await response.json();
                 console.log('Auth check data:', data);
-                if (response.ok && data.isAuthenticated) {
+                if (response.ok && data.id) {
                     setUser({
-                        id: data.user.id,
-                        nickname: data.user.nickname,
-                        avatarUrl: data.user.avatarUrl,
+                        id: data.id,
+                        nickname: data.nickname,
+                        avatarUrl: data.avatarUrl,
+                        email: data.email,
+                        name: data.name,
+                        status: data.status,
+                        categories: data.categories,
                     });
-                    // Загружаем полный профиль
-                    await fetchUserProfile();
                 } else {
+                    console.warn('Auth failed, user not authenticated');
                     setUser(null);
                 }
             } catch (error) {
                 console.error('Ошибка проверки авторизации:', error);
+                if (retryCount < maxRetries) {
+                    console.log('Retrying auth check...');
+                    setTimeout(() => checkAuth(retryCount + 1, maxRetries), 500);
+                    return;
+                }
                 setUser(null);
             } finally {
-                setLoading(false);
+                if (retryCount === 0 || retryCount >= maxRetries) {
+                    setLoading(false);
+                    console.log('Auth check complete, loading:', false, 'user:', user);
+                }
             }
         };
         checkAuth();
@@ -65,10 +77,12 @@ export function UserProvider({ children }) {
                     id: data.id,
                     nickname: data.nickname,
                     avatarUrl: data.avatarUrl,
+                    email: data.email,
+                    name: data.name,
+                    status: data.status,
+                    categories: data.categories,
                 };
                 setUser(newUser);
-                // Загружаем полный профиль после входа
-                await fetchUserProfile();
                 return data;
             } else {
                 throw new Error(data.message || 'Ошибка авторизации');

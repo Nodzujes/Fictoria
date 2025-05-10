@@ -418,3 +418,45 @@ export async function getUserProfile(req, res) {
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }
+
+export async function getCurrentUser(req, res) {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ message: 'Не авторизован' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = decoded.id;
+
+        const [user] = await db.promise().query(
+            'SELECT id, email, nickname, name, status, avatar_url FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (user.length === 0) {
+            return res.status(404).json({ message: 'Пользователь не найден' });
+        }
+
+        const [categories] = await db.promise().query(
+            'SELECT category FROM user_categories WHERE user_id = ?',
+            [userId]
+        );
+
+        const userData = {
+            id: user[0].id,
+            email: user[0].email,
+            nickname: user[0].nickname,
+            name: user[0].name || '',
+            status: user[0].status || '',
+            avatarUrl: user[0].avatar_url || '/images/userIcon.png',
+            categories: categories.map(c => c.category)
+        };
+
+        console.log('Current user fetched:', userData);
+        res.status(200).json(userData);
+    } catch (error) {
+        console.error('Ошибка при получении текущего пользователя:', error);
+        res.status(401).json({ message: 'Недействительный токен' });
+    }
+}
