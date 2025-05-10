@@ -10,15 +10,15 @@ function Footer() {
                         <ul>
                             <li><Link to="/user">Профиль</Link></li>
                             <li><Link to="/setings">Настройки</Link></li>
-                            <li>Авторизация</li>
-                            <li>Регистрация</li>
+                            <li><Link to="/login">Авторизация</Link></li>
+                            <li><Link to="/reg">Регистрация</Link></li>
                         </ul>
                     </div>
                     <div className="footer__nav block">
                         <div className="footer__titel">Разделы</div>
                         <ul>
                             <li>Моя лента</li>
-                            <li>Вся лента</li>
+                            <Link to="/">Вся лента</Link>
                             <li>Фильмы</li>
                             <li>Сериалы</li>
                             <li>Комиксы</li>
@@ -30,9 +30,9 @@ function Footer() {
                     <div className="footer__user block">
                         <div className="footer__titel">Контакты</div>
                         <ul>
-                            <li><a href="mailto:Companyname@gmail.com">Companyname@gmail.com</a></li>
-                            <li><a href="mailto:Questionsname@gmail.com">Questionsname@gmail.com</a></li>
-                            <li><a href="mailto:vakansii@gmail.com">vakansii@gmail.com</a></li>
+                            <li><a href="mailto:fictoriacompany@gmail.com">Fictoriacompany@gmail.com</a></li>
+                            <li><a href="mailto:fictoriacompany@gmail.com">QUAfictoria@gmail.com</a></li>
+                            <li><a href="mailto:fictoriacompany@gmail.com">vakansii@gmail.com</a></li>
                             <li><a href="tel:+79258889090">+7 (925) 888 90 90</a></li>
                         </ul>
                     </div>
