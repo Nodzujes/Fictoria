@@ -335,3 +335,34 @@ export async function getPostBlocks(req, res) {
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }
+
+export async function searchPosts(req, res) {
+    console.log('Получен запрос на поиск с query:', req.query);
+    try {
+        const { query } = req.query;
+        if (!query) {
+            console.log('Ошибка: поисковый запрос отсутствует');
+            return res.status(400).json({ message: 'Поисковый запрос обязателен' });
+        }
+
+        console.log('Выполняется SQL-запрос с query:', query);
+        const [posts] = await db.promise().query(`
+            SELECT 
+                p.id,
+                p.user_id,
+                p.title,
+                p.introduction,
+                p.cover_url,
+                u.nickname,
+                u.avatar_url
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            WHERE LOWER(p.title) LIKE LOWER(?)
+        `, [`%${query}%`]);
+        console.log('Найдено постов:', posts.length, 'Посты:', posts);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error('Ошибка при поиске постов:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
