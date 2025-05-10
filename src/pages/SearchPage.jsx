@@ -1,5 +1,3 @@
-import MainBlog from '../components/MainBlog.jsx';
-
 function SearchPage() {
     return (
         <>
@@ -11,7 +9,8 @@ function SearchPage() {
                     </form>
                 </div>
                 <div className="content__search-resalt">
-                    <MainBlog />
+                    {/* Должны выводиться посты как и на главной странице */}
+                    <p className="searchPosts">Введите название поста для поиска</p>
                 </div>
             </section>
         </>
