@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPost, getAllPosts, getUserPosts, toggleLike, getLikedPosts, getPostById, getPostBlocks, searchPosts } from '../controllers/postController.js';
+import { createPost, getAllPosts, getUserPosts, toggleLike, getLikedPosts, getPostById, getPostBlocks, searchPosts, getPostsByCategory, getMyFeed } from '../controllers/postController.js';
 
 const router = express.Router();
 
@@ -9,8 +9,10 @@ router.get('/user/:userId', getUserPosts);
 router.get('/like/:postId', toggleLike);
 router.post('/like/:postId', toggleLike);
 router.get('/liked/:userId', getLikedPosts);
-router.get('/search', searchPosts); // Переместите выше /:id
-router.get('/:id', getPostById);    // После /search
+router.get('/category/:category', getPostsByCategory);
+router.get('/my-feed/:userId', getMyFeed);
+router.get('/search', searchPosts);
+router.get('/:id', getPostById);
 router.get('/blocks/:id', getPostBlocks);
 
 export default router;

@@ -22,6 +22,7 @@ function AppRoutes() {
                 <Routes>
                     <Route path="/" element={<MainLayout />}>
                         <Route path="/" index element={<HomePage />} />
+                        <Route path="/category/:category" element={<HomePage />} />
                         <Route path="/search" element={<SearchPage />} />
                         <Route path="/user" element={<UserPage />} />
                         <Route path="/setings" element={<SetingsPage />} />

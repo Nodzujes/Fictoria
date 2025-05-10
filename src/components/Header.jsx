@@ -33,14 +33,16 @@ function Header() {
                     <span>Fictoria</span>
                 </div>
                 <ul className='mainHeader__nav'>
-                    <li>Моя лента</li>
+                    {user && (
+                        <li><Link to="/category/Моя лента">Моя лента</Link></li>
+                    )}
                     <li><Link to="/">Вся лента</Link></li>
-                    <li>Фильмы</li>
-                    <li>Сериалы</li>
-                    <li>Комиксы</li>
-                    <li>Аниме</li>
-                    <li>Манга</li>
-                    <li>Другое</li>
+                    <li><Link to="/category/Фильмы">Фильмы</Link></li>
+                    <li><Link to="/category/Сериалы">Сериалы</Link></li>
+                    <li><Link to="/category/Комиксы">Комиксы</Link></li>
+                    <li><Link to="/category/Аниме">Аниме</Link></li>
+                    <li><Link to="/category/Манга">Манга</Link></li>
+                    <li><Link to="/category/Другое">Другое</Link></li>
                 </ul>
                 <div className="mainHeader__buttons">
                     <Link to="/creator"><img src="/images/button_edit.png" alt="Button to edit" /></Link>

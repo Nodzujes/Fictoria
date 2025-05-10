@@ -17,14 +17,14 @@ function Footer() {
                     <div className="footer__nav block">
                         <div className="footer__titel">Разделы</div>
                         <ul>
-                            <li>Моя лента</li>
-                            <Link to="/">Вся лента</Link>
-                            <li>Фильмы</li>
-                            <li>Сериалы</li>
-                            <li>Комиксы</li>
-                            <li>Аниме</li>
-                            <li>Манга</li>
-                            <li>Другое</li>
+                            <li><Link to="/category/Моя лента">Моя лента</Link></li>
+                            <li><Link to="/">Вся лента</Link></li>
+                            <li><Link to="/category/Фильмы">Фильмы</Link></li>
+                            <li><Link to="/category/Сериалы">Сериалы</Link></li>
+                            <li><Link to="/category/Комиксы">Комиксы</Link></li>
+                            <li><Link to="/category/Аниме">Аниме</Link></li>
+                            <li><Link to="/category/Манга">Манга</Link></li>
+                            <li><Link to="/category/Другое">Другое</Link></li>
                         </ul>
                     </div>
                     <div className="footer__user block">

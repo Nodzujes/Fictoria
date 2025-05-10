@@ -171,6 +171,67 @@ export async function getAllPosts(req, res) {
     }
 }
 
+export async function getPostsByCategory(req, res) {
+    try {
+        const { category } = req.params;
+        console.log('Получен запрос для категории:', category);
+        const [posts] = await db.promise().query(`
+            SELECT 
+                p.id,
+                p.user_id,
+                p.title,
+                p.introduction,
+                p.cover_url,
+                u.nickname,
+                u.avatar_url,
+                JSON_ARRAYAGG(c.name) as categories
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            WHERE c.name = ?
+            GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
+        `, [category]);
+
+        console.log('Найденные посты для категории:', posts);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error('Ошибка при получении постов по категории:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function getMyFeed(req, res) {
+    try {
+        const { userId } = req.params;
+        console.log('Получен запрос для Моя лента, userId:', userId);
+        const [posts] = await db.promise().query(`
+            SELECT 
+                p.id,
+                p.user_id,
+                p.title,
+                p.introduction,
+                p.cover_url,
+                u.nickname,
+                u.avatar_url,
+                JSON_ARRAYAGG(c.name) as categories
+            FROM posts p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            JOIN user_categories uc ON uc.category = c.name
+            WHERE uc.user_id = ?
+            GROUP BY p.id, p.user_id, p.title, p.introduction, p.cover_url, u.nickname, u.avatar_url
+        `, [userId]);
+
+        console.log('Найденные посты для Моя лента:', posts);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error('Ошибка при получении постов для Моя лента:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
 export async function getUserPosts(req, res) {
     try {
         const { userId } = req.params;
