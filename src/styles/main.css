@@ -1308,8 +1308,8 @@ footer a {
 
 .chat__comment-comment p {
   font-family: "Inter", sans-serif;
-  font-size: 14px;
-  font-weight: 300;
+  font-size: 15px;
+  font-weight: 400;
   color: white;
   text-align: justify;
 }
@@ -1329,7 +1329,7 @@ footer a {
   gap: 8px 8px;
 }
 
-.comment-header span {
+.user-nickName {
   font-family: "Inter", sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -1351,6 +1351,8 @@ footer a {
   font-size: 15px;
   color: white;
   resize: none;
+  box-sizing: border-box;
+  padding: 5px 5px;
 }
 
 #yourComment button {
@@ -1398,4 +1400,17 @@ footer a {
   border-radius: 9px;
   -o-object-fit: cover;
      object-fit: cover;
+}
+
+.noComments {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: white;
+}
+
+.comment-date {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 200;
+  color: #E3E3E3;
 }/*# sourceMappingURL=main.css.map */

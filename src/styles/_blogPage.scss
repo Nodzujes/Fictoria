@@ -1,11 +1,11 @@
 .chat__comment,
-.comment-block{
+.comment-block {
     background-color: $blocks;
     box-sizing: border-box;
 }
 
 .comment-block .wrapper,
-.chat__comment .wrapper{
+.chat__comment .wrapper {
     padding: 20px 20px;
     display: flex;
     flex-direction: column;
@@ -13,27 +13,27 @@
 }
 
 .comment-block h2,
-.chat__comment h2{
+.chat__comment h2 {
     font-family: 'Montserrat', sans-serif;
     font-size: 20px;
     color: $nickName;
 }
 
-.chat__comment-comment{
+.chat__comment-comment {
     display: flex;
     flex-direction: column;
     gap: 10px 0;
 }
 
-.chat__comment-comment p{
+.chat__comment-comment p {
     font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 300;
+    font-size: 15px;
+    font-weight: 400;
     color: $nickName;
     text-align: justify;
 }
 
-#userIconComment{
+#userIconComment {
     width: 30px;
     height: 30px;
     border: none;
@@ -41,26 +41,26 @@
     object-fit: cover;
 }
 
-.comment-header{
+.comment-header {
     display: flex;
     align-items: center;
     gap: 8px 8px;
 }
 
-.comment-header span{
+.user-nickName {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: $nickName;
 }
 
-#yourComment{
+#yourComment {
     display: flex;
     flex-direction: column;
     gap: 20px 0;
 }
 
-#yourComment textarea{
+#yourComment textarea {
     box-sizing: border-box;
     height: 214px;
     background-color: $mainBack;
@@ -69,9 +69,11 @@
     font-size: 15px;
     color: white;
     resize: none;
+    box-sizing: border-box;
+    padding: 5px 5px;
 }
 
-#yourComment button{
+#yourComment button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -86,32 +88,45 @@
     padding: 5px 0;
 }
 
-.content-blog-item h3{
+.content-blog-item h3 {
     font-family: 'Montserrat', sans-serif;
     font-size: 21px;
     font-weight: 600;
     color: $orange;
 }
 
-.meta__media-block{
+.meta__media-block {
     display: flex;
     flex-wrap: wrap;
     gap: 20px 20px;
 }
 
-.meta__block{
+.meta__block {
     display: flex;
     flex-direction: column;
     gap: 20px 0;
 }
 
-.meta__media-block img{
+.meta__media-block img {
     border-radius: 9px;
     object-fit: cover;
 }
 
-.meta__media-block video{
+.meta__media-block video {
     width: 1094px;
     border-radius: 9px;
     object-fit: cover;
+}
+
+.noComments {
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    color: white;
+}
+
+.comment-date {
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 200;
+    color: #E3E3E3;
 }

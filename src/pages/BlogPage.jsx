@@ -1,20 +1,25 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import DevNews from '../components/DevNews.jsx';
+import { useUser } from '../context/UserContext.jsx';
 
 function BlogPage() {
     const { id } = useParams(); // Извлекаем ID поста из URL
     const [post, setPost] = useState(null);
     const [blocks, setBlocks] = useState([]);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { user, loading: userLoading } = useUser();
+    const navigate = useNavigate();
 
-    // Запрашиваем пост и его блоки при монтировании компонента
+    // Запрашиваем пост, его блоки и комментарии при монтировании компонента
     useEffect(() => {
-        const fetchPost = async () => {
+        const fetchPostData = async () => {
             try {
                 // Запрашиваем данные поста
-                const postResponse = await fetch(`/api/posts/${id}`);
+                const postResponse = await fetch(`/api/posts/${id}`, { credentials: 'include' });
                 if (!postResponse.ok) {
                     throw new Error(`Ошибка при загрузке поста: ${postResponse.statusText}`);
                 }
@@ -24,25 +29,84 @@ function BlogPage() {
                 }
 
                 // Запрашиваем блоки поста
-                const blocksResponse = await fetch(`/api/posts/blocks/${id}`);
+                const blocksResponse = await fetch(`/api/posts/blocks/${id}`, { credentials: 'include' });
                 if (!blocksResponse.ok) {
                     throw new Error(`Ошибка при загрузке блоков: ${blocksResponse.statusText}`);
                 }
                 const blocksData = await blocksResponse.json();
 
+                // Запрашиваем комментарии поста
+                const commentsResponse = await fetch(`/api/comments/${id}`, { credentials: 'include' });
+                if (!commentsResponse.ok) {
+                    throw new Error(`Ошибка при загрузке комментариев: ${commentsResponse.statusText}`);
+                }
+                const commentsData = await commentsResponse.json();
+
                 setPost(postData);
                 setBlocks(blocksData);
+                setComments(commentsData);
                 setIsLoading(false);
             } catch (error) {
-                console.error('Ошибка при загрузке поста:', error);
+                console.error('Ошибка при загрузке данных:', error);
                 setError(error.message);
                 setIsLoading(false);
             }
         };
-        fetchPost();
+        fetchPostData();
     }, [id]);
 
-    if (isLoading) {
+    // Обработка отправки комментария
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault();
+        if (!user && !userLoading) {
+            navigate('/login');
+            return;
+        }
+        if (!newComment.trim()) {
+            alert('Комментарий не может быть пустым');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/comments/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comment: newComment }),
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error(`Ошибка при отправке комментария: ${response.statusText}`);
+            }
+            const addedComment = await response.json();
+            setComments([addedComment, ...comments]); // Добавляем новый комментарий в начало
+            setNewComment(''); // Очищаем поле ввода
+            setError(null);
+        } catch (error) {
+            console.error('Ошибка при отправке комментария:', error);
+            setError(error.message);
+        }
+    };
+
+    // Обработка клика по textarea для неавторизованных пользователей
+    const handleTextareaClick = () => {
+        if (!user && !userLoading) {
+            alert('Пожалуйста, авторизуйтесь, чтобы оставить комментарий.');
+        }
+    };
+
+    // Форматирование даты комментария
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
+    if (isLoading || userLoading) {
         return <div>Загрузка...</div>;
     }
 
@@ -64,7 +128,6 @@ function BlogPage() {
     // Отображаем медиа-блоки (изображения или видео)
     const renderMediaBlock = (block) => {
         let mediaUrls = block.media_urls;
-        // Если media_urls — строка, преобразуем её в массив
         if (typeof mediaUrls === 'string') {
             mediaUrls = mediaUrls.startsWith('[') ? JSON.parse(mediaUrls) : [mediaUrls];
         } else if (!Array.isArray(mediaUrls)) {
@@ -114,7 +177,6 @@ function BlogPage() {
                                 {post.introduction ||
                                     "Lorem Ipsum — это просто текст-заглушка для печати и набора текста..."}
                             </p>
-                            {/* Отображаем все блоки */}
                             {blocks.sort((a, b) => a.order - b.order).map((block, index) => (
                                 <div key={index} className="meta__block">
                                     {block.type === 'text' && (
@@ -131,36 +193,42 @@ function BlogPage() {
                     <div className="chat__comment">
                         <div className="wrapper">
                             <h2>Комментарии</h2>
-                            <div className="chat__comment-comment">
-                                <div className="comment-header">
-                                    <img id="userIconComment" src="/images/userIcon.png" alt="Иконка пользователя" />
-                                    <span className="user-nickName">Like_Films</span>
-                                </div>
-                                <p className="comment-user">
-                                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
-                                    doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-                                    veritatis et quasi architecto beatae vitae dicta sunt explicabo...
-                                </p>
-                            </div>
-                            <div className="chat__comment-comment">
-                                <div className="comment-header">
-                                    <img id="userIconComment" src="/images/userIcon.png" alt="Иконка пользователя" />
-                                    <span className="user-nickName">Like_Films</span>
-                                </div>
-                                <p className="comment-user">
-                                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
-                                    doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-                                    veritatis et quasi architecto beatae vitae dicta sunt explicabo...
-                                </p>
-                            </div>
+                            {comments.length === 0 ? (
+                                <p className="noComments">Комментариев пока нет. Будьте первым!</p>
+                            ) : (
+                                comments.map((comment) => (
+                                    <div key={comment.id} className="chat__comment-comment">
+                                        <div className="comment-header">
+                                            <img
+                                                id="userIconComment"
+                                                src={comment.avatar_url || "/images/userIcon.png"}
+                                                alt="Иконка пользователя"
+                                            />
+                                            <span className="user-nickName">{comment.nickname}</span>
+                                            <span className="comment-date">{formatDate(comment.created_at)}</span>
+                                        </div>
+                                        <p className="comment-user">{comment.coment}</p>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                     <div className="comment-block">
                         <div className="wrapper">
                             <h2>Ваш комментарий</h2>
-                            <form id="yourComment">
-                                <textarea name="comment" id="writeComment"></textarea>
-                                <button id="sendComment">Отправить</button>
+                            <form id="yourComment" onSubmit={handleCommentSubmit}>
+                                <textarea
+                                    name="comment"
+                                    id="writeComment"
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    onClick={handleTextareaClick}
+                                    placeholder="Напишите ваш комментарий..."
+                                ></textarea>
+                                {error && <p className="error-message">{error}</p>}
+                                <button id="sendComment" type="submit" disabled={userLoading || !user}>
+                                    Отправить
+                                </button>
                             </form>
                         </div>
                     </div>
