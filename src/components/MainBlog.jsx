@@ -3,31 +3,41 @@ import PropTypes from "prop-types";
 import { useUser } from '../context/UserContext.jsx';
 
 function MainBlog({ post }) {
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const [liked, setLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(true); // Состояние загрузки лайка
 
-  // Проверяем, лайкнул ли пользователь пост
+  // Проверяем статус лайка при загрузке компонента
   useEffect(() => {
-    if (user?.id && post?.id) {
-      const checkLike = async () => {
-        try {
-          const response = await fetch(`http://localhost:5277/api/posts/like/${post.id}`, {
-            credentials: 'include',
-          });
-          console.log('Check like response status:', response.status);
-          const data = await response.json();
-          console.log('Check like data:', data);
-          if (response.ok) {
-            setLiked(data.liked);
-          }
-        } catch (error) {
-          console.error('Ошибка при проверке лайка:', error);
-        }
-      };
-      checkLike();
+    if (userLoading || !user?.id || !post?.id) {
+      setLikeLoading(false);
+      return; // Не выполняем запрос, если пользователь не загружен
     }
-  }, [user, post]);
+
+    const checkLike = async () => {
+      try {
+        setLikeLoading(true);
+        const response = await fetch(`/api/posts/like/${post.id}`, {
+          credentials: 'include',
+        });
+        console.log('Check like response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Check like data for post', post.id, ':', data);
+        if (response.ok) {
+          setLiked(data.liked);
+        }
+      } catch (error) {
+        console.error('Ошибка при проверке лайка для поста', post.id, ':', error);
+      } finally {
+        setLikeLoading(false);
+      }
+    };
+    checkLike();
+  }, [user, userLoading, post]);
 
   const likeClick = async () => {
     if (!user) {
@@ -39,7 +49,7 @@ function MainBlog({ post }) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5277/api/posts/like/${post.id}`, {
+      const response = await fetch(`/api/posts/like/${post.id}`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -94,14 +104,18 @@ function MainBlog({ post }) {
             "Lorem Ipsum — это просто текст-заглушка для печати и набора текста..."}
         </p>
         <div className="meta__read-all">
-          <a id="allBlog" href={`/post/${post.id}`}>Читать дальше</a> {/* Обновленная ссылка */}
+          <a id="allBlog" href={`/post/${post.id}`}>Читать дальше</a>
         </div>
         <div className="meta__blog-content-icons">
-          <button id="like" onClick={likeClick} disabled={isLoading}>
-            <img
-              src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"}
-              alt="иконка лайка"
-            />
+          <button id="like" onClick={likeClick} disabled={isLoading || likeLoading}>
+            {likeLoading ? (
+              <span>Загрузка...</span>
+            ) : (
+              <img
+                src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"}
+                alt="иконка лайка"
+              />
+            )}
           </button>
           <a href={`/post/${post.id}#comments`} id="comment">
             <img src="/icons/chat.png" alt="иконка комментариев" />

@@ -6,6 +6,7 @@ const router = express.Router();
 router.post('/create', createPost);
 router.get('/all', getAllPosts);
 router.get('/user/:userId', getUserPosts);
+router.get('/like/:postId', toggleLike);
 router.post('/like/:postId', toggleLike);
 router.get('/liked/:userId', getLikedPosts);
 router.get('/:id', getPostById);

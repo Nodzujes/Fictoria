@@ -227,6 +227,11 @@ export async function toggleLike(req, res) {
         );
         console.log('Existing like:', existingLike);
 
+        if (req.method === 'GET') {
+            // Если GET-запрос, возвращаем статус лайка
+            return res.status(200).json({ liked: existingLike.length > 0 });
+        }
+
         if (existingLike.length > 0) {
             // Удаляем лайк
             await db.promise().query(
