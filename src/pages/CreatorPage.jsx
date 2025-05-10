@@ -334,7 +334,7 @@ function Creator() {
                 );
             case 'videos':
                 return (
-                    <form key={block.id} id={`videos-block-blog-${block.id}`} className=" internals-block-blog">
+                    <form key={block.id} id={`videos-block-blog-${block.id}`} className=" videos-block-blog">
                         <div>
                             {videoInputs[blockIndex] ? (
                                 (() => {
@@ -343,7 +343,7 @@ function Creator() {
                                         return (
                                             <video
                                                 controls
-                                                style={{ width: '100%', height: '616px', objectFit: 'cover', cursor: 'pointer' }}
+                                                style={{ width: '1094px', height: '616px', objectFit: 'cover', cursor: 'pointer' }}
                                                 onClick={(e) => handleVideoReplace(e, blockIndex)}
                                             >
                                                 <source src={videoInputs[blockIndex]} type="video/mp4" />
@@ -355,7 +355,7 @@ function Creator() {
                                             <img
                                                 src={videoInputs[blockIndex]}
                                                 alt="uploaded content"
-                                                style={{ width: '100%', height: '616px', objectFit: 'cover', cursor: 'pointer' }}
+                                                style={{ width: '1094px', height: '616px', objectFit: 'cover', cursor: 'pointer' }}
                                                 onClick={(e) => handleVideoReplace(e, blockIndex)}
                                             />
                                         );

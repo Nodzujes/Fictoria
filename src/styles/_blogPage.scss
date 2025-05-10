@@ -104,3 +104,14 @@
     flex-direction: column;
     gap: 20px 0;
 }
+
+.meta__media-block img{
+    border-radius: 9px;
+    object-fit: cover;
+}
+
+.meta__media-block video{
+    width: 1094px;
+    border-radius: 9px;
+    object-fit: cover;
+}
