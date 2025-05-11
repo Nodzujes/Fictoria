@@ -68,7 +68,7 @@ function Login() {
                 window.location.href = 'http://localhost:5277/admin'; // Изменено на полный URL
             } else {
                 console.log('Redirecting to home page');
-                window.location.href = 'http://localhost:5173/'; // Изменено на полный URL
+                window.location.href = 'http://localhost:5277'; // Изменено на полный URL
             }
         } catch (err) {
             console.error('Login error:', err);
