@@ -7,6 +7,10 @@ import commentsRoutes from './routes/commentsRoutes.js';
 import db from './config/db.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { adminJs, adminRouter } from './config/admin.js';
+import sequelize from './config/sequelize.js';
+// eslint-disable-next-line no-unused-vars
+import models from './models/index.js';
 
 const app = express();
 const port = 5277;
@@ -28,8 +32,8 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentsRoutes);
+app.use(adminJs.options.rootPath, adminRouter);
 
-// Serve static files from public directory (including uploads)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -44,6 +48,17 @@ db.connect((err) => {
     }
     console.log('Подключение к БД установлено');
 });
+
+sequelize.authenticate()
+    .then(() => console.log('Sequelize подключен к базе данных'))
+    .catch(err => {
+        console.error('Ошибка подключения Sequelize:', err);
+        process.exit(1);
+    });
+
+sequelize.sync({ force: false })
+    .then(() => console.log('Модели синхронизированы с базой данных'))
+    .catch(err => console.error('Ошибка синхронизации моделей:', err));
 
 app.listen(port, '0.0.0.0', () => {
     console.log(`Сервер запущен на http://localhost:${port}`);

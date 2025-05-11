@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useUser } from './context/UserContext.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
@@ -14,6 +15,15 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import RegLayout from './layouts/RegLayout.jsx';
 import ScrollToTop from './ScrollToTop';
 
+function AdminRedirect() {
+    const { user } = useUser();
+    if (!user || !user.is_admin) {
+        return <Navigate to="/" replace />;
+    }
+    window.location.href = '/admin'; // Перенаправление на серверный маршрут AdminJS
+    return null;
+}
+
 function AppRoutes() {
     return (
         <>
@@ -26,10 +36,11 @@ function AppRoutes() {
                         <Route path="/search" element={<SearchPage />} />
                         <Route path="/user" element={<UserPage />} />
                         <Route path="/setings" element={<SetingsPage />} />
-                        <Route path='/likes' element={<UserLikePage />} />
-                        <Route path='/userblogs' element={<UserBlogs />} />
-                        <Route path='/creator' element={<Creator />} />
-                        <Route path='/post/:id' element={<BlogPage />} />
+                        <Route path="/likes" element={<UserLikePage />} />
+                        <Route path="/userblogs" element={<UserBlogs />} />
+                        <Route path="/creator" element={<Creator />} />
+                        <Route path="/post/:id" element={<BlogPage />} />
+                        <Route path="/admin" element={<AdminRedirect />} />
                     </Route>
                     <Route element={<AuthLayout />}>
                         <Route path="/login" element={<LoginPage />} />

@@ -38,6 +38,7 @@ export function UserProvider({ children }) {
                         name: data.name,
                         status: data.status,
                         categories: data.categories,
+                        is_admin: data.is_admin, // Добавлено
                     });
                 } else {
                     console.warn('Auth failed, user not authenticated');
@@ -71,7 +72,7 @@ export function UserProvider({ children }) {
                 credentials: 'include',
             });
             const data = await response.json();
-            console.log('Login response:', data);
+            console.log('Login response in UserContext:', data);
             if (response.ok) {
                 const newUser = {
                     id: data.id,
@@ -81,6 +82,7 @@ export function UserProvider({ children }) {
                     name: data.name,
                     status: data.status,
                     categories: data.categories,
+                    is_admin: data.is_admin, // Добавлено
                 };
                 setUser(newUser);
                 return data;
@@ -133,6 +135,7 @@ export function UserProvider({ children }) {
                     name: data.name,
                     status: data.status,
                     categories: data.categories,
+                    is_admin: data.is_admin, // Добавлено
                 });
             } else {
                 throw new Error(data.message || 'Ошибка получения профиля');

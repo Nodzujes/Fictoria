@@ -183,6 +183,7 @@ export async function loginUser(req, res) {
         }
 
         const user = users[0];
+        console.log('User fetched:', { id: user.id, email: user.email, is_admin: user.is_admin }); // Добавлен лог
         if (!user.is_verified) {
             return res.status(403).json({ message: 'Подтвердите email перед входом' });
         }
@@ -201,17 +202,19 @@ export async function loginUser(req, res) {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // Включаем secure в продакшене
+            secure: process.env.NODE_ENV === 'production',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        console.log('Login successful for:', email);
-        res.status(200).json({
+        const responseData = {
             message: 'Авторизация успешна',
             id: user.id,
             nickname: user.nickname,
-            avatarUrl: user.avatar_url || '/images/userIcon.png'
-        });
+            avatarUrl: user.avatar_url || '/images/userIcon.png',
+            is_admin: user.is_admin
+        };
+        console.log('Login response sent:', responseData); // Добавлен лог
+        res.status(200).json(responseData);
     } catch (error) {
         console.error('Ошибка при входе:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
@@ -275,7 +278,7 @@ export async function checkAuth(req, res) {
         const userId = decoded.id;
 
         const [user] = await db.promise().query(
-            'SELECT id, nickname, avatar_url FROM users WHERE id = ?',
+            'SELECT id, nickname, avatar_url, is_admin FROM users WHERE id = ?',
             [userId]
         );
 
@@ -289,6 +292,7 @@ export async function checkAuth(req, res) {
                 id: user[0].id,
                 nickname: user[0].nickname,
                 avatarUrl: user[0].avatar_url,
+                is_admin: user[0].is_admin,
             },
         });
     } catch (error) {
@@ -430,7 +434,7 @@ export async function getCurrentUser(req, res) {
         const userId = decoded.id;
 
         const [user] = await db.promise().query(
-            'SELECT id, email, nickname, name, status, avatar_url FROM users WHERE id = ?',
+            'SELECT id, email, nickname, name, status, avatar_url, is_admin FROM users WHERE id = ?',
             [userId]
         );
 
@@ -450,7 +454,8 @@ export async function getCurrentUser(req, res) {
             name: user[0].name || '',
             status: user[0].status || '',
             avatarUrl: user[0].avatar_url || '/images/userIcon.png',
-            categories: categories.map(c => c.category)
+            is_admin: user[0].is_admin,
+            categories: categories.map(c => c.category),
         };
 
         console.log('Current user fetched:', userData);

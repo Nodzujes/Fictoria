@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useUser } from '../context/UserContext.jsx';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -11,17 +11,14 @@ function Login() {
     const [verificationCode, setVerificationCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [recaptchaToken, setRecaptchaToken] = useState(null);
-    const navigate = useNavigate();
     const { fetchUserProfile } = useUser();
     const recaptchaRef = useRef(null);
 
-    // Callback для успешного прохождения reCAPTCHA
     const onReCaptchaSuccess = useCallback((token) => {
         console.log('reCAPTCHA token received:', token);
         setRecaptchaToken(token);
     }, []);
 
-    // Callback для истечения срока действия токена reCAPTCHA
     const onReCaptchaExpired = useCallback(() => {
         console.log('reCAPTCHA token expired');
         setRecaptchaToken(null);
@@ -53,6 +50,7 @@ function Login() {
 
             const data = await response.json();
             console.log('Login response:', data);
+            console.log('is_admin:', data.is_admin, 'type:', typeof data.is_admin);
 
             if (!response.ok) {
                 if (data.message === 'Подтвердите email перед входом') {
@@ -63,8 +61,15 @@ function Login() {
             }
 
             await fetchUserProfile();
-            console.log('Navigating to / after successful login');
-            navigate('/', { replace: true });
+
+            // Перенаправление на основе is_admin
+            if (data.is_admin === 1 || data.is_admin === true) {
+                console.log('Redirecting to admin panel');
+                window.location.href = 'http://localhost:5277/admin'; // Изменено на полный URL
+            } else {
+                console.log('Redirecting to home page');
+                window.location.href = 'http://localhost:5173/'; // Изменено на полный URL
+            }
         } catch (err) {
             console.error('Login error:', err);
             setError(err.message);
@@ -138,7 +143,6 @@ function Login() {
         }
     };
 
-    // Сбрасываем капчу при монтировании компонента
     useEffect(() => {
         console.log('Resetting reCAPTCHA on mount');
         if (recaptchaRef.current) {
