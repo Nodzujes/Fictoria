@@ -72,7 +72,7 @@ function Login() {
             // Перенаправление на основе is_admin
             if (data.is_admin === 1 || data.is_admin === true) {
                 console.log('Redirecting to admin panel');
-                window.location.href = 'http://localhost:5277/admin';
+                window.location.href = 'http://localhost:5277';
             } else {
                 console.log('Redirecting to home page');
                 window.location.href = 'http://localhost:5277';

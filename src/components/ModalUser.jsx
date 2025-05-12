@@ -37,6 +37,12 @@ function ModalUser({ isOpen, onClose, onLogout }) {
                     </div>
                     <Link to="/user"><img src="/icons/user.png" alt="иконка для кнопки" /><span>Мой профиль</span></Link>
                     <Link to="/setings"><img src="/icons/settings.png" alt="иконка настроек" /><span>Настройки</span></Link>
+                    {!!user?.is_admin && (
+                        <>
+                            <Link to="/admin"><img src="/icons/adminPanel.png" alt="иконка настроек" /><span>Админ-панель</span></Link>
+                            <Link to="/admin-metric"><img src="/icons/statistic.png" alt="иконка настроек" /><span>Статистика</span></Link>
+                        </>
+                    )}
                     <button className="logout__btn" onClick={handleLogoutClick}>
                         <img src="/icons/logout.png" alt="иконка выхода" />
                         <span>Выйти</span>
