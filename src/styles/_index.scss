@@ -198,8 +198,10 @@ footer a {
 
 .MetricHeader {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    box-sizing: border-box;
+    padding: 0 200px;
 }
 
 .MetricHeader a {
