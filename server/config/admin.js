@@ -9,7 +9,15 @@ AdminJS.registerAdapter(AdminJSSequelize);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
 
-const adminJs = new AdminJS({
+// Кастомная страница для метрик
+const metricsPage = {
+    name: 'metrics', // Уникальное имя страницы
+    label: 'Перейти к метрикам', // Название в боковом меню
+    icon: 'Activity', // Иконка
+    href: '/admin-metric', // Прямая ссылка на клиентский маршрут
+};
+
+const adminJsOptions = {
     databases: [],
     resources: [
         {
@@ -36,8 +44,32 @@ const adminJs = new AdminJS({
         companyName: 'Fictoria Admin',
         logo: false,
         softwareBrothers: false,
+        withMadeWithLove: false,
     },
-});
+    // Добавляем кастомную страницу в боковое меню
+    pages: {
+        metrics: metricsPage,
+    },
+    locale: {
+        language: 'en',
+        translations: {
+            labels: {
+                users: 'Users',
+                posts: 'Posts',
+                categories: 'Categories',
+                likes: 'Likes',
+                posts_comments: 'Posts Comments',
+                post_blocks: 'Post Blocks',
+                post_categories: 'Post Categories',
+                user_categories: 'User Categories',
+                verification_codes: 'Verification Codes',
+                Fictoria: 'Fictoria',
+            },
+        },
+    },
+};
+
+const adminJs = new AdminJS(adminJsOptions);
 
 const router = express.Router();
 

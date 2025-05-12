@@ -30,7 +30,7 @@ export function UserProvider({ children }) {
                 const data = await response.json();
                 console.log('Auth check data:', data);
                 if (response.ok && data.id) {
-                    setUser({
+                    const newUser = {
                         id: data.id,
                         nickname: data.nickname,
                         avatarUrl: data.avatarUrl,
@@ -38,8 +38,10 @@ export function UserProvider({ children }) {
                         name: data.name,
                         status: data.status,
                         categories: data.categories,
-                        is_admin: data.is_admin, // Добавлено
-                    });
+                        is_admin: data.is_admin, // Убедимся, что это поле есть
+                    };
+                    setUser(newUser);
+                    console.log('User set in context:', newUser);
                 } else {
                     console.warn('Auth failed, user not authenticated');
                     setUser(null);
@@ -82,9 +84,10 @@ export function UserProvider({ children }) {
                     name: data.name,
                     status: data.status,
                     categories: data.categories,
-                    is_admin: data.is_admin, // Добавлено
+                    is_admin: data.is_admin,
                 };
                 setUser(newUser);
+                console.log('User set after login:', newUser);
                 return data;
             } else {
                 throw new Error(data.message || 'Ошибка авторизации');
@@ -127,7 +130,7 @@ export function UserProvider({ children }) {
             const data = await response.json();
             console.log('Fetch user profile data:', data);
             if (response.ok) {
-                setUser({
+                const newUser = {
                     id: data.id,
                     nickname: data.nickname,
                     avatarUrl: data.avatarUrl,
@@ -135,8 +138,10 @@ export function UserProvider({ children }) {
                     name: data.name,
                     status: data.status,
                     categories: data.categories,
-                    is_admin: data.is_admin, // Добавлено
-                });
+                    is_admin: data.is_admin,
+                };
+                setUser(newUser);
+                console.log('User set after fetch profile:', newUser);
             } else {
                 throw new Error(data.message || 'Ошибка получения профиля');
             }

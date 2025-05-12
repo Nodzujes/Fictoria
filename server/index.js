@@ -4,6 +4,7 @@ import path from 'path';
 import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import commentsRoutes from './routes/commentsRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import db from './config/db.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -32,6 +33,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentsRoutes);
+app.use('/api/admin', adminRoutes);
 app.use(adminJs.options.rootPath, adminRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));

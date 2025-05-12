@@ -16,15 +16,36 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import RegLayout from './layouts/RegLayout.jsx';
 import MetricLayout from './layouts/MetricLayout.jsx';
 import ScrollToTop from './ScrollToTop';
+import PropTypes from 'prop-types';
 
 function AdminRedirect() {
-    const { user } = useUser();
+    const { user, loading } = useUser();
+    if (loading) {
+        return <div>Загрузка...</div>;
+    }
     if (!user || !user.is_admin) {
         return <Navigate to="/" replace />;
     }
-    window.location.href = '/admin'; // Перенаправление на серверный маршрут AdminJS
+    window.location.href = '/admin';
     return null;
 }
+
+function AdminMetricRoute({ element }) {
+    const { user, loading } = useUser();
+    console.log('AdminMetricRoute - loading:', loading, 'user:', user);
+    if (loading) {
+        return <div>Загрузка...</div>;
+    }
+    if (!user || !user.is_admin) {
+        console.log('Redirecting to / because user is not admin or not logged in');
+        return <Navigate to="/" replace />;
+    }
+    return element;
+}
+
+AdminMetricRoute.propTypes = {
+    element: PropTypes.element.isRequired,
+};
 
 function AppRoutes() {
     return (
@@ -51,12 +72,15 @@ function AppRoutes() {
                         <Route path="/reg" element={<RegisterPage />} />
                     </Route>
                     <Route element={<MetricLayout />}>
-                        <Route path="/admin-metric" element={<Dashboard />} />
+                        <Route
+                            path="/admin-metric"
+                            element={<AdminMetricRoute element={<Dashboard />} />}
+                        />
                     </Route>
                 </Routes>
             </BrowserRouter>
         </>
-    )
+    );
 }
 
 export default AppRoutes;
