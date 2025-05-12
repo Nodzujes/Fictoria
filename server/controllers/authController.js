@@ -183,13 +183,13 @@ export async function loginUser(req, res) {
         }
 
         const user = users[0];
-        console.log('User fetched:', { id: user.id, email: user.email, is_admin: user.is_admin }); // Добавлен лог
+        console.log('User fetched:', { id: user.id, email: user.email, is_admin: user.is_admin, is_2fa_enabled: user.is_2fa_enabled });
+
         if (!user.is_verified) {
             return res.status(403).json({ message: 'Подтвердите email перед входом' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-
         if (!isMatch) {
             return res.status(400).json({ message: 'Неверный пароль' });
         }
@@ -198,6 +198,39 @@ export async function loginUser(req, res) {
             throw new Error('JWT_SECRET не определен');
         }
 
+        // Проверяем, включена ли 2FA и не является ли пользователь админом
+        if (user.is_2fa_enabled && !user.is_admin) {
+            const verificationCode = generateVerificationCode();
+            const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
+
+            // Удаляем старые коды 2FA
+            await db.promise().query('DELETE FROM verification_codes WHERE user_id = ?', [user.id]);
+
+            // Сохраняем новый код 2FA
+            await db.promise().query(
+                'INSERT INTO verification_codes (user_id, code, expires_at) VALUES (?, ?, ?)',
+                [user.id, verificationCode, expiresAt]
+            );
+
+            // Отправляем код 2FA
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Код двухфакторной аутентификации для Fictoria',
+                text: `Ваш код двухфакторной аутентификации: ${verificationCode}\nКод действителен 15 минут.`
+            });
+
+            // Создаем временный токен для проверки 2FA
+            const tempToken = jwt.sign({ id: user.id, nickname: user.nickname, is_2fa: true }, JWT_SECRET, { expiresIn: '15m' });
+
+            return res.status(200).json({
+                message: 'Код двухфакторной аутентификации отправлен на ваш email',
+                tempToken,
+                requires2FA: true
+            });
+        }
+
+        // Если 2FA не требуется, выдаем полноценный токен
         const token = jwt.sign({ id: user.id, nickname: user.nickname }, JWT_SECRET, { expiresIn: '7d' });
 
         res.cookie('token', token, {
@@ -213,10 +246,131 @@ export async function loginUser(req, res) {
             avatarUrl: user.avatar_url || '/images/userIcon.png',
             is_admin: user.is_admin
         };
-        console.log('Login response sent:', responseData); // Добавлен лог
+        console.log('Login response sent:', responseData);
         res.status(200).json(responseData);
     } catch (error) {
         console.error('Ошибка при входе:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function verify2FA(req, res) {
+    const { tempToken, code } = req.body;
+
+    if (!tempToken || !code) {
+        return res.status(400).json({ message: 'Необходимо указать токен и код' });
+    }
+
+    try {
+        // Проверяем временный токен
+        const decoded = jwt.verify(tempToken, JWT_SECRET);
+        if (!decoded.is_2fa) {
+            return res.status(400).json({ message: 'Недействительный токен' });
+        }
+
+        const userId = decoded.id;
+
+        // Проверяем код 2FA
+        const [codes] = await db.promise().query(
+            'SELECT * FROM verification_codes WHERE user_id = ? AND code = ?',
+            [userId, code]
+        );
+
+        if (codes.length === 0) {
+            return res.status(400).json({ message: 'Неверный код двухфакторной аутентификации' });
+        }
+
+        const verification = codes[0];
+        if (new Date(verification.expires_at) < new Date()) {
+            return res.status(400).json({ message: 'Код двухфакторной аутентификации истек' });
+        }
+
+        // Удаляем использованный код
+        await db.promise().query(
+            'DELETE FROM verification_codes WHERE user_id = ?',
+            [userId]
+        );
+
+        // Получаем данные пользователя
+        const [users] = await db.promise().query('SELECT id, nickname, avatar_url, is_admin FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Пользователь не найден' });
+        }
+
+        const user = users[0];
+
+        // Выдаем полноценный токен
+        const token = jwt.sign({ id: user.id, nickname: user.nickname }, JWT_SECRET, { expiresIn: '7d' });
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        res.status(200).json({
+            message: 'Двухфакторная аутентификация успешна',
+            id: user.id,
+            nickname: user.nickname,
+            avatarUrl: user.avatar_url || '/images/userIcon.png',
+            is_admin: user.is_admin
+        });
+    } catch (error) {
+        console.error('Ошибка при проверке 2FA:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function resend2FACode(req, res) {
+    const { tempToken } = req.body;
+
+    if (!tempToken) {
+        return res.status(400).json({ message: 'Необходим временный токен' });
+    }
+
+    try {
+        // Проверяем временный токен
+        const decoded = jwt.verify(tempToken, JWT_SECRET);
+        if (!decoded.is_2fa) {
+            return res.status(400).json({ message: 'Недействительный токен' });
+        }
+
+        const userId = decoded.id;
+
+        // Получаем email пользователя
+        const [users] = await db.promise().query('SELECT email, is_admin, is_2fa_enabled FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Пользователь не найден' });
+        }
+
+        const user = users[0];
+        if (!user.is_2fa_enabled || user.is_admin) {
+            return res.status(400).json({ message: '2FA не требуется для этого пользователя' });
+        }
+
+        const verificationCode = generateVerificationCode();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+        // Удаляем старые коды
+        await db.promise().query('DELETE FROM verification_codes WHERE user_id = ?', [userId]);
+
+        // Создаем новый код
+        await db.promise().query(
+            'INSERT INTO verification_codes (user_id, code, expires_at) VALUES (?, ?, ?)',
+            [userId, verificationCode, expiresAt]
+        );
+
+        // Отправляем новый код
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: 'Новый код двухфакторной аутентификации для Fictoria',
+            text: `Ваш новый код двухфакторной аутентификации: ${verificationCode}\nКод действителен 15 минут.`
+        });
+
+        res.status(200).json({ message: 'Новый код двухфакторной аутентификации отправлен' });
+    } catch (error) {
+        console.error('Ошибка при отправке кода 2FA:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }

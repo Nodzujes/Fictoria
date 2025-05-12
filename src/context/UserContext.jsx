@@ -38,7 +38,7 @@ export function UserProvider({ children }) {
                         name: data.name,
                         status: data.status,
                         categories: data.categories,
-                        is_admin: data.is_admin, // Убедимся, что это поле есть
+                        is_admin: data.is_admin,
                     };
                     setUser(newUser);
                     console.log('User set in context:', newUser);
@@ -76,6 +76,9 @@ export function UserProvider({ children }) {
             const data = await response.json();
             console.log('Login response in UserContext:', data);
             if (response.ok) {
+                if (data.requires2FA) {
+                    return { requires2FA: true, tempToken: data.tempToken };
+                }
                 const newUser = {
                     id: data.id,
                     nickname: data.nickname,

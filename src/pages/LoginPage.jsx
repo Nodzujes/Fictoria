@@ -7,8 +7,10 @@ function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [showModal, setShowModal] = useState(false);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [show2FAModal, setShow2FAModal] = useState(false);
     const [verificationCode, setVerificationCode] = useState('');
+    const [tempToken, setTempToken] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [recaptchaToken, setRecaptchaToken] = useState(null);
     const { fetchUserProfile } = useUser();
@@ -50,14 +52,19 @@ function Login() {
 
             const data = await response.json();
             console.log('Login response:', data);
-            console.log('is_admin:', data.is_admin, 'type:', typeof data.is_admin);
 
             if (!response.ok) {
                 if (data.message === 'Подтвердите email перед входом') {
-                    setShowModal(true);
+                    setShowVerificationModal(true);
                     return;
                 }
                 throw new Error(data.message || 'Ошибка авторизации');
+            }
+
+            if (data.requires2FA) {
+                setTempToken(data.tempToken);
+                setShow2FAModal(true);
+                return;
             }
 
             await fetchUserProfile();
@@ -65,10 +72,10 @@ function Login() {
             // Перенаправление на основе is_admin
             if (data.is_admin === 1 || data.is_admin === true) {
                 console.log('Redirecting to admin panel');
-                window.location.href = 'http://localhost:5277/admin'; // Изменено на полный URL
+                window.location.href = 'http://localhost:5277/admin';
             } else {
                 console.log('Redirecting to home page');
-                window.location.href = 'http://localhost:5277'; // Изменено на полный URL
+                window.location.href = 'http://localhost:5277';
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -101,7 +108,7 @@ function Login() {
             console.log('Verify response:', data);
             if (response.ok) {
                 alert('Аккаунт успешно подтвержден');
-                setShowModal(false);
+                setShowVerificationModal(false);
                 await handleSubmit({ preventDefault: () => {} });
             } else {
                 setError(data.message);
@@ -109,6 +116,45 @@ function Login() {
         } catch (error) {
             console.error('Verification error:', error);
             setError('Ошибка при подтверждении');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerify2FA = async () => {
+        if (isLoading) return;
+
+        setIsLoading(true);
+        try {
+            console.log('Verifying 2FA code');
+            const response = await fetch('http://localhost:5277/api/auth/verify-2fa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tempToken,
+                    code: verificationCode
+                })
+            });
+
+            const data = await response.json();
+            console.log('2FA verify response:', data);
+            if (response.ok) {
+                await fetchUserProfile();
+                setShow2FAModal(false);
+                // Перенаправление на основе is_admin
+                if (data.is_admin === 1 || data.is_admin === true) {
+                    console.log('Redirecting to admin panel');
+                    window.location.href = 'http://localhost:5277/admin';
+                } else {
+                    console.log('Redirecting to home page');
+                    window.location.href = 'http://localhost:5277';
+                }
+            } else {
+                setError(data.message);
+            }
+        } catch (error) {
+            console.error('2FA verification error:', error);
+            setError('Ошибка при подтверждении 2FA');
         } finally {
             setIsLoading(false);
         }
@@ -138,6 +184,35 @@ function Login() {
         } catch (error) {
             console.error('Resend code error:', error);
             setError('Ошибка при отправке кода');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResend2FACode = async () => {
+        if (isLoading) return;
+
+        setIsLoading(true);
+        try {
+            console.log('Resending 2FA code');
+            const response = await fetch('http://localhost:5277/api/auth/resend-2fa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tempToken }),
+            });
+
+            const data = await response.json();
+            console.log('Resend 2FA code response:', data);
+            if (response.ok) {
+                alert('Новый код двухфакторной аутентификации отправлен на ваш email');
+            } else {
+                setError(data.message);
+            }
+        } catch (error) {
+            console.error('Resend 2FA code error:', error);
+            setError('Ошибка при отправке кода 2FA');
         } finally {
             setIsLoading(false);
         }
@@ -198,7 +273,7 @@ function Login() {
                 <Link to="/reg">Зарегистрируйтесь</Link>
             </div>
 
-            {showModal && (
+            {showVerificationModal && (
                 <div className="modal">
                     <div className="modal-content">
                         <h3>Подтверждение Email</h3>
@@ -214,6 +289,28 @@ function Login() {
                             {isLoading ? 'Подтверждение...' : 'Подтвердить'}
                         </button>
                         <button className="btnModalVerNew" onClick={handleResendCode} disabled={isLoading}>
+                            Отправить новый код
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {show2FAModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h3>Двухфакторная аутентификация</h3>
+                        <p>Введите код, отправленный на ваш email.</p>
+                        <input
+                            type="text"
+                            placeholder="Введите код 2FA"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            disabled={isLoading}
+                        />
+                        <button className="btnModalVer" onClick={handleVerify2FA} disabled={isLoading}>
+                            {isLoading ? 'Подтверждение...' : 'Подтвердить'}
+                        </button>
+                        <button className="btnModalVerNew" onClick={handleResend2FACode} disabled={isLoading}>
                             Отправить новый код
                         </button>
                     </div>
