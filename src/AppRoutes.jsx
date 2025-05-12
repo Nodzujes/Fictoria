@@ -10,9 +10,11 @@ import UserLikePage from './pages/UserLikePage.jsx';
 import UserBlogs from './pages/UserBlogs.jsx';
 import Creator from './pages/CreatorPage.jsx';
 import BlogPage from './pages/BlogPage.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 import MainLayout from './layouts/MainLayout.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import RegLayout from './layouts/RegLayout.jsx';
+import MetricLayout from './layouts/MetricLayout.jsx';
 import ScrollToTop from './ScrollToTop';
 
 function AdminRedirect() {
@@ -47,6 +49,9 @@ function AppRoutes() {
                     </Route>
                     <Route element={<RegLayout />}>
                         <Route path="/reg" element={<RegisterPage />} />
+                    </Route>
+                    <Route element={<MetricLayout />}>
+                        <Route path="/admin-metric" element={<Dashboard />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

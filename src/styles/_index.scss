@@ -10,57 +10,57 @@ $active: #5AB9EA;
 $orange: #FF8C42;
 $blackTxt: #1A1A1A;
 
-@mixin center-container{
+@mixin center-container {
     max-width: 1920px;
     width: 100%;
     margin: 0 auto;
 }
 
-*{
+* {
     margin: 0;
     padding: 0;
     // outline: 4px solid green !important;
 }
 
-body{
+body {
     background-color: $mainBack;
 }
 
-header{
+header {
     @include center-container;
     background-color: $blocks;
     height: 100px;
 }
 
-header .wrapper{
+header .wrapper {
     padding: 31px 200px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.mainHeader{
+.mainHeader {
     position: sticky;
     top: 0;
     z-index: 1000;
 }
 
-.mainHeader__logo{
+.mainHeader__logo {
     // padding-left: 200px;
     display: flex;
     gap: 0 5px;
 }
 
-.mainHeader__logo span{
+.mainHeader__logo span {
     font-family: "Oswald";
     font-size: 30px;
     font-weight: 600;
     color: $nickName;
 }
 
-.mainHeader__nav{
+.mainHeader__nav {
     display: flex;
-    gap: 0 25px         ;
+    gap: 0 25px;
     font-family: 'Montserrat', sans-serif;
     font-size: 20px;
     color: $nickName;
@@ -68,22 +68,22 @@ header .wrapper{
     list-style: none;
 }
 
-.mainHeader__nav a.active{
+.mainHeader__nav a.active {
     color: $active;
 }
 
-.mainHeader__buttons{
+.mainHeader__buttons {
     display: flex;
     gap: 0 13px;
 }
 
-header a{
+header a {
     color: $nickName;
     text-decoration: none;
 }
 
 // Кнопка авторизаци
-.header__login{
+.header__login {
     width: 87px;
     border-radius: 5px;
     background-color: $orange;
@@ -98,13 +98,13 @@ header a{
 }
 
 // Иконка пользователя
-.header__user{
+.header__user {
     border: none;
     background-color: transparent;
     cursor: pointer;
 }
 
-.header__user img{
+.header__user img {
     width: 40px;
     height: 40px;
     border: none;
@@ -112,34 +112,34 @@ header a{
     object-fit: cover;
 }
 
-.owner__main{
+.owner__main {
     @include center-container;
     box-sizing: border-box;
 }
 
-main .wrapper{
+main .wrapper {
     padding: 20px 200px;
     box-sizing: border-box;
 }
 
-footer{
+footer {
     @include center-container;
     background-color: $blocks;
 }
 
-footer .wrapper{
+footer .wrapper {
     padding: 20px 200px;
     display: flex;
     gap: 0 180px;
 }
 
-footer .block{
+footer .block {
     display: flex;
     flex-direction: column;
     gap: 15px 0;
 }
 
-.footer__titel{
+.footer__titel {
     width: 242px;
     font-family: 'Montserrat', sans-serif;
     font-size: 16px;
@@ -149,7 +149,7 @@ footer .block{
     border-bottom: 1px solid $mainTxt;
 }
 
-.footer__user ul{
+.footer__user ul {
     display: flex;
     flex-direction: column;
     gap: 9px 0;
@@ -160,7 +160,7 @@ footer .block{
     list-style: none;
 }
 
-.footer__nav ul{
+.footer__nav ul {
     width: 242px;
     display: flex;
     flex-wrap: wrap;
@@ -172,11 +172,11 @@ footer .block{
     list-style: none;
 }
 
-.footer__nav li{
+.footer__nav li {
     width: 72px;
 }
 
-footer a{
+footer a {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 400;
@@ -184,14 +184,26 @@ footer a{
     text-decoration: none;
 }
 
-.footer__social--links{
+.footer__social--links {
     display: flex;
     flex-direction: column;
     gap: 9px 0;
 }
 
-.footer__social--links a{
+.footer__social--links a {
     display: flex;
     align-items: center;
     gap: 0 14px;
+}
+
+.MetricHeader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.MetricHeader a {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
 }

@@ -184,12 +184,25 @@ footer a {
   gap: 0 14px;
 }
 
+.MetricHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.MetricHeader a {
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
 .AuthHeader {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+.MetricHeader h1,
 .AuthHeader h1 {
   font-family: "Oswald";
   font-size: 30px;
