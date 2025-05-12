@@ -43,6 +43,11 @@ const User = sequelize.define('User', {
         allowNull: false,
         defaultValue: false,
     },
+    is_2fa_enabled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+    },
     created_at: {
         type: DataTypes.DATE,
         allowNull: false,
