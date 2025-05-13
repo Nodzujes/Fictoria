@@ -81,34 +81,57 @@ export async function regUser(req, res) {
     }
 
     try {
+        console.log('Попытка регистрации пользователя:', { email, nickname });
+
+        // Проверка существующего пользователя
         const [existingUser] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
         if (existingUser.length > 0) {
+            console.log('Пользователь уже существует:', email);
             return res.status(400).json({ message: 'Пользователь уже существует' });
         }
 
         const hashedPassword = await hashPassword(password);
         const verificationCode = generateVerificationCode();
+        console.log('Сгенерирован код верификации:', verificationCode);
 
+        // Создание пользователя
         const [result] = await db.promise().query(
             'INSERT INTO users (email, nickname, password) VALUES (?, ?, ?)',
             [email, nickname, hashedPassword]
         );
+        console.log('Пользователь создан, ID:', result.insertId);
 
         const userId = result.insertId;
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
 
+        // Сохранение кода верификации
         await db.promise().query(
             'INSERT INTO verification_codes (user_id, code, expires_at) VALUES (?, ?, ?)',
             [userId, verificationCode, expiresAt]
         );
+        console.log('Код верификации сохранен в базе данных для userId:', userId);
 
-        // Отправка email с кодом
-        await transporter.sendMail({
+        // Проверка конфигурации email
+        console.log('Конфигурация email:', {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: 'Код подтверждения для Fictoria',
-            text: `Ваш код подтверждения: ${verificationCode}\nКод действителен 15 минут.`
+            host: process.env.EMAIL_HOST,
+            port: process.env.EMAIL_PORT
         });
+
+        // Отправка email с кодом
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Код подтверждения для Fictoria',
+                text: `Ваш код подтверждения: ${verificationCode}\nКод действителен 15 минут.`
+            });
+            console.log('Email с кодом верификации успешно отправлен на:', email);
+        } catch (emailError) {
+            console.error('Ошибка при отправке email для верификации:', emailError);
+            return res.status(500).json({ message: 'Не удалось отправить email с кодом подтверждения', error: emailError.message });
+        }
 
         res.status(201).json({ message: 'Пользователь зарегистрирован, проверьте email для подтверждения' });
     } catch (error) {
