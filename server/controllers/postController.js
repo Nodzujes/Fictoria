@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import sanitizeHtml from 'sanitize-html';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
 
@@ -48,6 +49,13 @@ const upload = multer({
     },
     limits: { fileSize: 10 * 1024 * 1024 }
 }).any();
+
+const sanitizeString = (input) => {
+    return sanitizeHtml(input, {
+        allowedTags: [], // Запрещаем все HTML-теги
+        allowedAttributes: {}, // Запрещаем все атрибуты
+    }).replace(/[<>"'`;]/g, '');
+};
 
 export async function createPost(req, res) {
     upload(req, res, async (err) => {
@@ -406,9 +414,15 @@ export async function searchPosts(req, res) {
             return res.status(400).json({ message: 'Поисковый запрос обязателен' });
         }
 
-        console.log('Выполняется SQL-запрос с query:', query);
-        const [posts] = await db.promise().query(`
-            SELECT 
+        // Санитизация поискового запроса
+        const sanitizedQuery = sanitizeString(query).slice(0, 100); // Ограничение длины
+        if (!sanitizedQuery.trim()) {
+            return res.status(400).json({ message: 'Недопустимый поисковый запрос' });
+        }
+
+        console.log('Выполняется SQL-запрос с query:', sanitizedQuery);
+        const [posts] = await db.promise().query(
+            `SELECT 
                 p.id,
                 p.user_id,
                 p.title,
@@ -418,8 +432,9 @@ export async function searchPosts(req, res) {
                 u.avatar_url
             FROM posts p
             JOIN users u ON p.user_id = u.id
-            WHERE LOWER(p.title) LIKE LOWER(?)
-        `, [`%${query}%`]);
+            WHERE LOWER(p.title) LIKE LOWER(?)`,
+            [`%${sanitizedQuery}%`]
+        );
         console.log('Найдено постов:', posts.length, 'Посты:', posts);
         res.status(200).json(posts);
     } catch (error) {

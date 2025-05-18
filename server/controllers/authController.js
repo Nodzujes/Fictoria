@@ -8,10 +8,17 @@ import path from 'path';
 import fs from 'fs';
 import nodemailer from 'nodemailer';
 import fetch from 'node-fetch';
+import sanitizeHtml from 'sanitize-html';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
 const RECAPTCHA_SECRET_KEY = '6LeMTdsqAAAAAKrClj9hNFygUyDFKYkEvud0sRrJ';
+
+// Валидация email
+const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+};
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -59,6 +66,13 @@ const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const sanitizeString = (input) => {
+    return sanitizeHtml(input, {
+        allowedTags: [], // Запрещаем все HTML-теги
+        allowedAttributes: {}, // Запрещаем все атрибуты
+    }).replace(/[<>"'`;]/g, '');
+};
+
 // Функция для проверки reCAPTCHA токена
 const verifyRecaptcha = async (token) => {
     const response = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
@@ -80,14 +94,34 @@ export async function regUser(req, res) {
         return res.status(400).json({ message: 'Заполните все поля' });
     }
 
-    try {
-        console.log('Попытка регистрации пользователя:', { email, nickname });
+    // Валидация входных данных
+    if (!isValidEmail(email)) {
+        return res.status(400).json({ message: 'Неверный формат email' });
+    }
+    if (nickname.length > 50 || nickname.length < 3) {
+        return res.status(400).json({ message: 'Никнейм должен быть от 3 до 50 символов' });
+    }
+    if (password.length < 6 || password.length > 100) {
+        return res.status(400).json({ message: 'Пароль должен быть от 6 до 100 символов' });
+    }
 
-        // Проверка существующего пользователя
-        const [existingUser] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
-        if (existingUser.length > 0) {
+    const sanitizedNickname = sanitizeString(nickname);
+
+    try {
+        console.log('Попытка регистрации пользователя:', { email, nickname: sanitizedNickname });
+
+        // Проверка существующего пользователя по email
+        const [existingUserByEmail] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
+        if (existingUserByEmail.length > 0) {
             console.log('Пользователь уже существует:', email);
-            return res.status(400).json({ message: 'Пользователь уже существует' });
+            return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+        }
+
+        // Проверка существующего пользователя по никнейму
+        const [existingUserByNickname] = await db.promise().query('SELECT * FROM users WHERE nickname = ?', [sanitizedNickname]);
+        if (existingUserByNickname.length > 0) {
+            console.log('Никнейм уже занят:', sanitizedNickname);
+            return res.status(400).json({ message: 'Этот никнейм уже занят' });
         }
 
         const hashedPassword = await hashPassword(password);
@@ -97,7 +131,7 @@ export async function regUser(req, res) {
         // Создание пользователя
         const [result] = await db.promise().query(
             'INSERT INTO users (email, nickname, password) VALUES (?, ?, ?)',
-            [email, nickname, hashedPassword]
+            [email, sanitizedNickname, hashedPassword]
         );
         console.log('Пользователь создан, ID:', result.insertId);
 
@@ -190,6 +224,13 @@ export async function loginUser(req, res) {
 
     if (!email || !password || !recaptchaToken) {
         return res.status(400).json({ message: 'Необходимо заполнить все поля и пройти капчу' });
+    }
+
+    if (!isValidEmail(email)) {
+        return res.status(400).json({ message: 'Неверный формат email' });
+    }
+    if (password.length < 6 || password.length > 100) {
+        return res.status(400).json({ message: 'Пароль должен быть от 6 до 100 символов' });
     }
 
     const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
@@ -508,7 +549,17 @@ export async function updateUserProfile(req, res) {
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
             const userId = decoded.id;
-            const { name, status, categories } = req.body;
+            let { name, status, categories } = req.body;
+
+            // Санитизация входных данных
+            name = name ? sanitizeString(name) : null;
+            status = status ? sanitizeString(status) : null;
+            if (name && name.length > 40) {
+                return res.status(400).json({ message: 'Имя не должно превышать 40 символов' });
+            }
+            if (status && status.length > 30) {
+                return res.status(400).json({ message: 'Статус не должен превышать 30 символов' });
+            }
 
             // Получаем текущие данные пользователя
             const [user] = await db.promise().query('SELECT name, status, avatar_url FROM users WHERE id = ?', [userId]);
@@ -519,7 +570,7 @@ export async function updateUserProfile(req, res) {
             // Определяем значения для обновления
             const updatedName = name !== undefined ? (name.trim() === '' ? null : name) : user[0].name;
             const updatedStatus = status !== undefined ? (status.trim() === '' ? null : status) : user[0].status;
-            let updatedAvatarUrl = user[0].avatar_url; // Сохраняем текущую аватарку по умолчанию
+            let updatedAvatarUrl = user[0].avatar_url;
 
             // Если загружен новый файл аватарки
             if (req.file) {
@@ -539,10 +590,13 @@ export async function updateUserProfile(req, res) {
             // Обновляем категории, если они были отправлены
             if (categories !== undefined) {
                 const parsedCategories = categories ? JSON.parse(categories) : [];
+                // Валидация категорий
+                const validCategories = ['Фильмы', 'Сериалы', 'Аниме', 'Манга', 'Комиксы', 'Другое'];
+                const sanitizedCategories = parsedCategories.filter(cat => validCategories.includes(cat));
                 // Очищаем существующие категории
                 await db.promise().query('DELETE FROM user_categories WHERE user_id = ?', [userId]);
                 // Добавляем новые категории
-                for (const category of parsedCategories) {
+                for (const category of sanitizedCategories) {
                     await db.promise().query(
                         'INSERT INTO user_categories (user_id, category) VALUES (?, ?)',
                         [userId, category]

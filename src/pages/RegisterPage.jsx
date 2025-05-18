@@ -56,7 +56,11 @@ function RegisterPage() {
             if (response.ok) {
                 setShowModal(true);
             } else {
-                setError(data.message || 'Ошибка регистрации');
+                if (data.message === 'Этот никнейм уже занят') {
+                    alert('Этот никнейм уже занят. Пожалуйста, выберите другой.');
+                } else {
+                    setError(data.message || 'Ошибка регистрации');
+                }
             }
         } catch (error) {
             console.error('Register error:', error);
