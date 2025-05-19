@@ -549,17 +549,7 @@ export async function updateUserProfile(req, res) {
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
             const userId = decoded.id;
-            let { name, status, categories } = req.body;
-
-            // Санитизация входных данных
-            name = name ? sanitizeString(name) : null;
-            status = status ? sanitizeString(status) : null;
-            if (name && name.length > 40) {
-                return res.status(400).json({ message: 'Имя не должно превышать 40 символов' });
-            }
-            if (status && status.length > 30) {
-                return res.status(400).json({ message: 'Статус не должен превышать 30 символов' });
-            }
+            const { name, status, categories } = req.body;
 
             // Получаем текущие данные пользователя
             const [user] = await db.promise().query('SELECT name, status, avatar_url FROM users WHERE id = ?', [userId]);
@@ -570,7 +560,7 @@ export async function updateUserProfile(req, res) {
             // Определяем значения для обновления
             const updatedName = name !== undefined ? (name.trim() === '' ? null : name) : user[0].name;
             const updatedStatus = status !== undefined ? (status.trim() === '' ? null : status) : user[0].status;
-            let updatedAvatarUrl = user[0].avatar_url;
+            let updatedAvatarUrl = user[0].avatar_url; // Сохраняем текущую аватарку по умолчанию
 
             // Если загружен новый файл аватарки
             if (req.file) {
@@ -590,13 +580,10 @@ export async function updateUserProfile(req, res) {
             // Обновляем категории, если они были отправлены
             if (categories !== undefined) {
                 const parsedCategories = categories ? JSON.parse(categories) : [];
-                // Валидация категорий
-                const validCategories = ['Фильмы', 'Сериалы', 'Аниме', 'Манга', 'Комиксы', 'Другое'];
-                const sanitizedCategories = parsedCategories.filter(cat => validCategories.includes(cat));
                 // Очищаем существующие категории
                 await db.promise().query('DELETE FROM user_categories WHERE user_id = ?', [userId]);
                 // Добавляем новые категории
-                for (const category of sanitizedCategories) {
+                for (const category of parsedCategories) {
                     await db.promise().query(
                         'INSERT INTO user_categories (user_id, category) VALUES (?, ?)',
                         [userId, category]
