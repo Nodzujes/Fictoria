@@ -133,6 +133,10 @@ footer .wrapper {
     gap: 0 180px;
 }
 
+footer .wrapper__mobile {
+    display: none;
+}
+
 footer .block {
     display: flex;
     flex-direction: column;
