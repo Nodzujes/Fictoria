@@ -2,17 +2,16 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useUser } from '../context/UserContext.jsx';
 
-function MainBlog({ post }) {
+function MainBlog({ post, isAdmin, onApprove }) {
   const { user, loading: userLoading } = useUser();
   const [liked, setLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(true); // Состояние загрузки лайка
+  const [likeLoading, setLikeLoading] = useState(true);
 
-  // Проверяем статус лайка при загрузке компонента
   useEffect(() => {
-    if (userLoading || !user?.id || !post?.id) {
+    if (isAdmin || userLoading || !user?.id || !post?.id) {
       setLikeLoading(false);
-      return; // Не выполняем запрос, если пользователь не загружен
+      return;
     }
 
     const checkLike = async () => {
@@ -37,7 +36,7 @@ function MainBlog({ post }) {
       }
     };
     checkLike();
-  }, [user, userLoading, post]);
+  }, [user, userLoading, post, isAdmin]);
 
   const likeClick = async () => {
     if (!user) {
@@ -45,7 +44,7 @@ function MainBlog({ post }) {
       return;
     }
 
-    if (isLoading) return; // Предотвращаем множественные клики
+    if (isLoading) return;
 
     setIsLoading(true);
     try {
@@ -106,21 +105,33 @@ function MainBlog({ post }) {
         <div className="meta__read-all">
           <a id="allBlog" href={`/post/${post.id}`}>Читать дальше</a>
         </div>
-        <div className="meta__blog-content-icons">
-          <button id="like" onClick={likeClick} disabled={isLoading || likeLoading}>
-            {likeLoading ? (
-              <span>Загрузка...</span>
-            ) : (
-              <img
-                src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"}
-                alt="иконка лайка"
-              />
-            )}
-          </button>
-          <a href={`/post/${post.id}#comments`} id="comment">
-            <img src="/icons/chat.png" alt="иконка комментариев" />
-          </a>
-        </div>
+        {isAdmin ? (
+          <div className="meta__blog-content-actions">
+            <button
+              className="approve-btn"
+              onClick={onApprove}
+              disabled={isLoading}
+            >
+              Одобрить
+            </button>
+          </div>
+        ) : (
+          <div className="meta__blog-content-icons">
+            <button id="like" onClick={likeClick} disabled={isLoading || likeLoading}>
+              {likeLoading ? (
+                <span>Загрузка...</span>
+              ) : (
+                <img
+                  src={liked ? "/icons/likeActive.png" : "/icons/likeNoActive.png"}
+                  alt="иконка лайка"
+                />
+              )}
+            </button>
+            <a href={`/post/${post.id}#comments`} id="comment">
+              <img src="/icons/chat.png" alt="иконка комментариев" />
+            </a>
+          </div>
+        )}
       </div>
     </article>
   );
@@ -138,7 +149,14 @@ MainBlog.propTypes = {
       PropTypes.arrayOf(PropTypes.string),
       PropTypes.string
     ]).isRequired
-  }).isRequired
+  }).isRequired,
+  isAdmin: PropTypes.bool,
+  onApprove: PropTypes.func
+};
+
+MainBlog.defaultProps = {
+  isAdmin: false,
+  onApprove: () => { }
 };
 
 export default MainBlog;

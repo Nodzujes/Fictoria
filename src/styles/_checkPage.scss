@@ -1,0 +1,88 @@
+.admin-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-page h1 {
+    color: rgb(227, 227, 227);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.post-card {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.post-cover {
+    width: 200px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.post-details {
+    flex: 1;
+}
+
+.post-details h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.post-details p {
+    margin-bottom: 10px;
+}
+
+.post-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.view-post-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.view-post-btn:hover {
+    background-color: #0056b3;
+}
+
+.approve-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 29px;
+    // display: box;
+    border: 1px solid #38ef7d;
+    border-radius: 3px;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: #38ef7d;
+    text-decoration: none;
+}
+
+.noPostsCheck {
+    color: $active;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+}

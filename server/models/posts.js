@@ -28,6 +28,11 @@ const Post = sequelize.define('Post', {
         allowNull: false,
         defaultValue: DataTypes.NOW,
     },
+    is_approved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: 0,
+    },
 }, {
     tableName: 'posts',
     timestamps: false,

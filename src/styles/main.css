@@ -1872,25 +1872,108 @@ footer a {
   .images-block-blog button,
   .images-block-blog img {
     width: 333px;
-    /* 353px - 2 * 10px (padding контейнера) */
     height: 187px;
-    /* Пропорционально уменьшено от 537x302 */
     border-radius: 6px;
   }
   .videos-block-blog button,
   .videos-block-blog video,
   .videos-block-blog img {
     width: 333px;
-    /* 353px - 2 * 10px (padding контейнера) */
     height: 187px;
-    /* Пропорционально уменьшено от 1094x616 */
     border-radius: 6px;
   }
   /* Адаптация обложки */
   .content-creator img[alt=cover] {
     width: 333px;
     height: 130px;
-    /* Пропорционально уменьшено от 1094x415 */
     border-radius: 6px;
   }
+}
+.admin-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.admin-page h1 {
+  color: rgb(227, 227, 227);
+  font-family: "Montserrat", sans-serif;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.post-cover {
+  width: 200px;
+  height: 120px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  border-radius: 8px;
+}
+
+.post-details {
+  flex: 1;
+}
+
+.post-details h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.post-details p {
+  margin-bottom: 10px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.view-post-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.view-post-btn:hover {
+  background-color: #0056b3;
+}
+
+.approve-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 29px;
+  border: 1px solid #38ef7d;
+  border-radius: 3px;
+  background: transparent;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #38ef7d;
+  text-decoration: none;
+}
+
+.noPostsCheck {
+  color: #5AB9EA;
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
 }/*# sourceMappingURL=main.css.map */

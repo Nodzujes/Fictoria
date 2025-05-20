@@ -531,9 +531,7 @@
     .images-block-blog button,
     .images-block-blog img {
         width: 333px;
-        /* 353px - 2 * 10px (padding контейнера) */
         height: 187px;
-        /* Пропорционально уменьшено от 537x302 */
         border-radius: 6px;
     }
 
@@ -541,9 +539,7 @@
     .videos-block-blog video,
     .videos-block-blog img {
         width: 333px;
-        /* 353px - 2 * 10px (padding контейнера) */
         height: 187px;
-        /* Пропорционально уменьшено от 1094x616 */
         border-radius: 6px;
     }
 
@@ -551,7 +547,6 @@
     .content-creator img[alt="cover"] {
         width: 333px;
         height: 130px;
-        /* Пропорционально уменьшено от 1094x415 */
         border-radius: 6px;
     }
 }

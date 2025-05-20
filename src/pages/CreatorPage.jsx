@@ -253,7 +253,7 @@ function Creator() {
                 }
             });
 
-            console.log('Отправляемые категории:', selectedCategories); // Логирование для отладки
+            console.log('Отправляемые категории:', selectedCategories);
 
             const response = await fetch('http://localhost:5277/api/posts/create', {
                 method: 'POST',
@@ -263,7 +263,7 @@ function Creator() {
 
             const result = await response.json();
             if (response.ok) {
-                alert('Пост успешно опубликован!');
+                alert('Пост отправлен на модерацию!');
                 setTitle('');
                 setIntroduction('');
                 setSelectedCategories([]);
@@ -276,11 +276,11 @@ function Creator() {
                 setVideoFiles([]);
                 setTextBlocks([]);
             } else {
-                alert(`Ошибка при публикации: ${result.message}`);
+                alert(`Ошибка при отправке на модерацию: ${result.message}`);
             }
         } catch (error) {
-            console.error('Ошибка при публикации:', error);
-            alert('Произошла ошибка при публикации поста');
+            console.error('Ошибка при отправке на модерацию:', error);
+            alert('Произошла ошибка при отправке поста на модерацию');
         }
     };
 
@@ -497,7 +497,7 @@ function Creator() {
                                     </p>
                                 </button>
                             )}
-                            <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverImageUpload} style={{ display: 'none' }}/>
+                            <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverImageUpload} style={{ display: 'none' }} />
                             <div className="creator__description">
                                 <label htmlFor="">Введение статьи</label>
                                 <textarea name="descriptionBlog" maxLength={1400} value={introduction} onChange={(e) => setIntroduction(e.target.value)}></textarea>

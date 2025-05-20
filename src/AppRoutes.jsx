@@ -11,6 +11,7 @@ import UserBlogs from './pages/UserBlogs.jsx';
 import Creator from './pages/CreatorPage.jsx';
 import BlogPage from './pages/BlogPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import CheckPage from './pages/CheckBlogPage.jsx'; // Используем правильное имя файла
 import MainLayout from './layouts/MainLayout.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import RegLayout from './layouts/RegLayout.jsx';
@@ -72,10 +73,8 @@ function AppRoutes() {
                         <Route path="/reg" element={<RegisterPage />} />
                     </Route>
                     <Route element={<MetricLayout />}>
-                        <Route
-                            path="/admin-metric"
-                            element={<AdminMetricRoute element={<Dashboard />} />}
-                        />
+                        <Route path="/admin-metric" element={<AdminMetricRoute element={<Dashboard />} />} />
+                        <Route path="/admin-check" element={<AdminMetricRoute element={<CheckPage />} />} /> {/* Используем CheckPage */}
                     </Route>
                 </Routes>
             </BrowserRouter>
