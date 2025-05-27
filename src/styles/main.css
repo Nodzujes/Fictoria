@@ -1976,4 +1976,26 @@ footer a {
   color: #5AB9EA;
   font-family: "Montserrat", sans-serif;
   font-size: 14px;
+}
+
+.meta__blog-content-actions {
+  display: flex;
+  gap: 0 10px;
+}
+
+.reject-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 29px;
+  border: 1px solid #FF416C;
+  border-radius: 3px;
+  background: transparent;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #FF416C;
+  text-decoration: none;
 }/*# sourceMappingURL=main.css.map */

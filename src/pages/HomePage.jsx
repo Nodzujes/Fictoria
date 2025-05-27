@@ -6,8 +6,8 @@ import { useUser } from '../context/UserContext.jsx';
 
 function HomePage() {
   const [posts, setPosts] = useState([]);
-  const { category } = useParams(); // Получаем категорию из URL (например, /category/Фильмы)
-  const { user, loading: userLoading } = useUser(); // Используем 'loading' вместо 'isLoading'
+  const { category } = useParams(); // Получаем категорию из URL
+  const { user, loading: userLoading } = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {

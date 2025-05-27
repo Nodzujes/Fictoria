@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useUser } from '../context/UserContext.jsx';
 
-function MainBlog({ post, isAdmin, onApprove }) {
+function MainBlog({ post, isAdmin, onApprove, onReject }) {
   const { user, loading: userLoading } = useUser();
   const [liked, setLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -112,7 +112,14 @@ function MainBlog({ post, isAdmin, onApprove }) {
               onClick={onApprove}
               disabled={isLoading}
             >
-              Одобрить
+              {isLoading ? 'Одобряется...' : 'Одобрить'}
+            </button>
+            <button
+              className="reject-btn"
+              onClick={onReject}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Отклоняется...' : 'Отклонить'}
             </button>
           </div>
         ) : (
@@ -151,12 +158,14 @@ MainBlog.propTypes = {
     ]).isRequired
   }).isRequired,
   isAdmin: PropTypes.bool,
-  onApprove: PropTypes.func
+  onApprove: PropTypes.func,
+  onReject: PropTypes.func
 };
 
 MainBlog.defaultProps = {
   isAdmin: false,
-  onApprove: () => { }
+  onApprove: () => { },
+  onReject: () => { }
 };
 
 export default MainBlog;

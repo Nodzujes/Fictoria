@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import sanitizeHtml from 'sanitize-html';
+import { sendRejectionEmail } from '../config/email.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
 
@@ -143,7 +144,7 @@ export async function createPost(req, res) {
                 }
             }
 
-            res.status(201).json({ message: 'Пост отправлен на модерацию' });
+            res.status(201).json({ message: 'Пост отправлен на проверку' });
         } catch (error) {
             console.error('Ошибка при создании поста:', error);
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });
@@ -509,6 +510,49 @@ export async function approvePost(req, res) {
         res.status(200).json({ message: 'Пост одобрен' });
     } catch (error) {
         console.error('Ошибка при одобрении поста:', error);
+        res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    }
+}
+
+export async function rejectPost(req, res) {
+    try {
+        const token = req.cookies.token;
+        if (!token) {
+            return res.status(401).json({ message: 'Не авторизован' });
+        }
+
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = decoded.id;
+
+        const [user] = await db.promise().query('SELECT is_admin FROM users WHERE id = ?', [userId]);
+        if (user.length === 0 || !user[0].is_admin) {
+            return res.status(403).json({ message: 'Доступ запрещён: только для администраторов' });
+        }
+
+        const postId = req.params.postId;
+        const [post] = await db.promise().query(
+            'SELECT p.title, u.email FROM posts p JOIN users u ON p.user_id = u.id WHERE p.id = ?',
+            [postId]
+        );
+        if (post.length === 0) {
+            return res.status(404).json({ message: 'Пост не найден' });
+        }
+
+        const { title, email } = post[0];
+
+        // Отправляем письмо пользователю
+        await sendRejectionEmail(email, title);
+
+        // Удаляем связанные данные
+        await db.promise().query('DELETE FROM post_categories WHERE post_id = ?', [postId]);
+        await db.promise().query('DELETE FROM post_blocks WHERE post_id = ?', [postId]);
+        await db.promise().query('DELETE FROM posts_comments WHERE id_post = ?', [postId]);
+        await db.promise().query('DELETE FROM likes WHERE post_id = ?', [postId]);
+        await db.promise().query('DELETE FROM posts WHERE id = ?', [postId]);
+
+        res.status(200).json({ message: 'Пост отклонён и удалён' });
+    } catch (error) {
+        console.error('Ошибка при отклонении поста:', error);
         res.status(500).json({ message: 'Ошибка сервера', error: error.message });
     }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainBlog from '../components/MainBlog.jsx'; // Импортируем MainBlog
+import MainBlog from '../components/MainBlog.jsx';
 
 function CheckPage() {
     const [pendingPosts, setPendingPosts] = useState([]);
@@ -46,6 +46,25 @@ function CheckPage() {
         }
     };
 
+    const handleReject = async (postId) => {
+        try {
+            const response = await fetch(`http://localhost:5277/api/posts/reject/${postId}`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setPendingPosts(pendingPosts.filter(post => post.id !== postId));
+                alert('Пост отклонён и удалён!');
+            } else {
+                alert(`Ошибка: ${data.message}`);
+            }
+        } catch (err) {
+            console.error('Ошибка при отклонении поста:', err);
+            alert('Произошла ошибка при отклонении поста');
+        }
+    };
+
     return (
         <section className="admin-page">
             <h1>Панель модерации постов</h1>
@@ -60,6 +79,7 @@ function CheckPage() {
                             post={post}
                             isAdmin={true}
                             onApprove={() => handleApprove(post.id)}
+                            onReject={() => handleReject(post.id)}
                         />
                     ))}
                 </div>
